@@ -6,12 +6,12 @@ require 'rexy_admin/action'
 
 module RexyAdmin
   def self.included(base)
-    puts '------>Include'
+    puts '------>Rexy Admin Including'
     base.extend(Variable)
+    # base.set_admin_table_columns
     base.extend(Query)
     base.extend(Json)
     base.extend(Action)
-    # base.set_admin_table_columns
     # base.set_custom_filters
     # base.set_actions
     # base.set_formdata

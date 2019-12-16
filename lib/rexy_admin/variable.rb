@@ -16,11 +16,19 @@ EXCLUDE_KEYS = %w[password_digest created_at updated_at].freeze
 module RexyAdmin
   module Variable
     def set_admin_table_columns(columns = [])
-      @table_columns ||= build_columns(columns)
+      @accessable_columns ||= columns.presence || columns_hash
     end
 
-    def table_columns
-      @table_columns ||= build_columns
+    def table_columns(custom_cols = [])
+      @table_columns ||= build_columns(
+        if custom_cols.present? 
+          custom_cols.select do |col|
+            @accessable_columns.include?(col.to_sym)
+          end
+        else
+          @accessable_columns
+        end
+      )
     end
 
     def build_columns(custom_cols = [])
@@ -40,13 +48,15 @@ module RexyAdmin
         cls = if defined_enums.key?(col_name)
                 { type: 'enum', lookup: defined_enums[col_name].invert }
               elsif aws_file_name
-                { type: 'image_url', name: aws_file_name.humanize }
+                { type: 'image_url', title: aws_file_name.humanize }
+              elsif col_props.type == :integer
+                { type: 'numeric' }
               else
                 { type: col_props.type }
               end
           cols << {
             field: col_name,
-            name: col_name.to_s.humanize,
+            title: col_name.to_s.humanize,
           }.merge!(cls)
       end
     end

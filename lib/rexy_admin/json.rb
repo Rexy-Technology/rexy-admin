@@ -13,28 +13,28 @@
 
 module RexyAdmin
   module Json
-    def parasite_render_table_json(records, pagination, params)
+    def rexy_admin_render_table_json(records, pagination, params)
       {
-        metadata: table_columns,
+        metadata: @table_columns,
         records: records,
         # records: compute_record_for_table(records),
         # entity: table_name,
         # custom_filters: get_custom_filters,
-        # pagination: pagination,
+        pagination: pagination,
         # params: params.except(:controller, :path, :action)
       }
     end
 
     def compute_record_for_table(records)
       records.reduce([]) do |rs, rc|
-        rs << table_columns.keys.reduce({}) do |record, key|
-          key_method = table_columns[key][:method] || key
+        rs << @table_columns.keys.reduce({}) do |record, key|
+          key_method = @table_columns[key][:method] || key
           record.merge!(key.to_sym => rc.send(key_method))
         end.merge!(actions: rc.table_actions)
       end
     end
 
-    def parasite_render_form_json(record)
+    def rexy_admin_render_form_json(record)
       {
         data: record,
         formdata: get_formdata

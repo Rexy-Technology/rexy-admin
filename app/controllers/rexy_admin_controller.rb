@@ -3,6 +3,28 @@
 class RexyAdminController < ActionController::Base
   protect_from_forgery with: :exception
   skip_before_action :verify_authenticity_token
+  before_action :authenticate, except: [:login]
+
+  def login
+    cmd = AuthenticateAdmin.call(params)
+    if cmd.success?
+      render json: cmd.result
+    else
+      render json: cmd.errors, status: 422
+    end
+  end
+
+  def authenticate
+    render json: { authentication: 'Not Authorized.' }, status: 401 unless admin_token.present? && current_admin.present?
+  end
+
+  def admin_token
+    @admin_token ||= JsonWebToken.decode(request.headers['RexyAdmin-Authorization'])
+  end
+
+  def current_admin
+    @current_admin ||= RexyAdminAuth.find_by_id(admin_token[:admin_id])
+  end
 
   def catch_all
     if request.get?
@@ -27,25 +49,25 @@ class RexyAdminController < ActionController::Base
     # result = if objects.length > 1
     #            source_object = objects[-2]
     #            source_id = path.split('/')[-2].to_i
-    #            model.parasite_query(params.permit!.merge(source_object:{ name: source_object,
+    #            model.rexy_admin_query(params.permit!.merge(source_object:{ name: source_object,
     #                                                                      id: source_id }))
     #          else
-    #            model.parasite_query(params.permit!)
+    #            model.rexy_admin_query(params.permit!)
     #          end
-    result = model.parasite_query(params.permit!)
+    result = model.rexy_admin_query(params.permit!)
     render json: result
   end
 
   def create
-    result = model.parasite_create(params)
+    result = model.rexy_admin_create(params)
     return render json: result if result == 'OK'
 
     render json: result, status: 422
   end
 
   def show
-    result = model.parasite_show(record_id)
-    return render json: model.parasite_render_form_json(result) if result.present?
+    result = model.rexy_admin_show(record_id)
+    return render json: model.rexy_admin_render_form_json(result) if result.present?
 
     render json: 'NO RECORD', status: 422
   end
@@ -56,21 +78,21 @@ class RexyAdminController < ActionController::Base
   end
 
   def delete
-    result = model.parasite_delete(record_id)
+    result = model.rexy_admin_delete(record_id)
     return render json: result if result == 'OK'
 
     render json: result, status: 422
   end
 
   def update
-    result = model.parasite_update(record_id, params.permit!)
+    result = model.rexy_admin_update(record_id, params.permit!)
     return render json: 'OK' if result == 'OK'
 
     render json: result, status: 422
   end
 
   def toggle_active
-    result = model.parasite_toggle_active(record_id)
+    result = model.rexy_admin_toggle_active(record_id)
     return render json: result if result == 'OK'
 
     render json: result, status: 422
@@ -92,7 +114,7 @@ class RexyAdminController < ActionController::Base
 
   def record_id
     @record_id ||= path_request.split('/')
-                               .select { |e| e.match?(/^\d+$/) }
+                               .select { |e| e.match?(/^\d+$|edit|new/) }
                                .last
                                .to_i
   end

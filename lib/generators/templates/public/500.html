@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Error</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Nunito:300,400,700,900&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body div {
+        box-sizing: border-box;
+        font-family: "Nunito";
+      }
+
+      body.error-page-container {
+        background-color: #e84f3e;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100vw;
+        height: 100vh;
+        margin: 0px;
+      }
+      .browser-wrapper {
+        width: 80%;
+        max-width: 912px;
+        position: relative;
+      }
+
+      .address-bar-wrapper {
+        display: flex;
+        justify-content: space-around;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+        background-color: #ffffff;
+        width: 100%;
+        margin-bottom: 2px;
+        padding: 8px 15px;
+      }
+
+      .dot-wrapper {
+        display: flex;
+        flex: 1;
+        justify-content: space-around;
+      }
+      .dot-wrapper .dot {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background-color: #e84f3e;
+      }
+
+      .address-bar {
+        flex: 10;
+        border-radius: 5px;
+        background-color: #e84f3e;
+        margin-left: 10px;
+      }
+
+      .extensions-wrapper {
+        flex: 1;
+        border-radius: 5px;
+        background-color: #e84f3e;
+        margin-left: 25px;
+      }
+
+      .content-wrapper {
+        position: relative;
+        height: 50vh;
+        background-color: #ffffff;
+        border-bottom-left-radius: 15px;
+        border-bottom-right-radius: 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+      }
+
+      h1.error-title {
+        text-align: center;
+        font-size: 200px;
+        margin: 0;
+      }
+
+      h3.error-subtitle {
+        text-align: center;
+        font-size: 50px;
+        margin: 0;
+      }
+      .shadow {
+        background-color: rgba(0, 0, 0, 0.5);
+        position: absolute;
+        width: 100%;
+        max-width: 912px;
+        height: 300px;
+        bottom: 0;
+        left: -150px;
+        transform: skew(45deg);
+        border-radius: 15px;
+      }
+
+      @media screen and (max-width: 768px) {
+        .address-bar-wrapper {
+          padding: 8px 12px;
+        }
+        .dot-wrapper .dot {
+          width: 8px;
+          height: 8px;
+        }
+        .address-bar,
+        .extensions-wrapper {
+          border-radius: 3px;
+        }
+        .content-wrapper {
+          height: 40vh;
+        }
+
+        h1.error-title {
+          font-size: 150px;
+        }
+        h3.error-subtitle {
+          font-size: 70px;
+        }
+
+        .shadow {
+          height: 150px;
+          left: -75px;
+        }
+      }
+      @media screen and (max-width: 768px) {
+        .content-wrapper {
+          height: 20vh;
+        }
+        h1.error-title {
+          font-size: 50px;
+        }
+        h3.error-subtitle {
+          font-size: 20px;
+        }
+        .shadow {
+          height: 120px;
+          left: -60px;
+        }
+      }
+    </style>
+  </head>
+
+  <body class="error-page-container">
+    <div class="browser-wrapper">
+      <div class="address-bar-wrapper">
+        <div class="dot-wrapper">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+        <div class="address-bar"></div>
+        <div class="extensions-wrapper"></div>
+      </div>
+      <div class="shadow"></div>
+      <div class="content-wrapper">
+        <h1 class="error-title">500</h1>
+        <h3 class="error-subtitle">Something went wrong.</h3>
+      </div>
+    </div>
+  </body>
+</html>

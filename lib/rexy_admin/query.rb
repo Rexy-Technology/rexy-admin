@@ -39,12 +39,12 @@ module RexyAdmin
       end
     end
 
-    def parasite_query(params = {})
+    def rexy_admin_query(params = {})
       set_params params
-      cols = table_columns.map { |h| h.slice(:field).values }.flatten
+      cols = table_columns(@params[:columns]).map { |h| h.slice(:field).values }.flatten
       records = order(order_string).select(cols)
 
-      parasite_render_table_json(
+      rexy_admin_render_table_json(
         records, 
         pagination.merge( total_count: records.page(pagination[:page]).per(pagination[:per_page]).total_count),
         params
@@ -80,8 +80,8 @@ module RexyAdmin
       records.map(&:add_actions)
     end
 
-    def parasite_entity_resource
-      parasite_active.to_a.map do |rc|
+    def rexy_admin_entity_resource
+      rexy_admin_active.to_a.map do |rc|
         {
           label: rc.name,
           value: rc.id
@@ -89,7 +89,7 @@ module RexyAdmin
       end
     end
 
-    def parasite_active
+    def rexy_admin_active
       column_names.include?('active') ? where(active: true) : all
     end
   end

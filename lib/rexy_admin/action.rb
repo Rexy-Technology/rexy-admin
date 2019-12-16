@@ -13,11 +13,11 @@
 
 module RexyAdmin
   module Action
-    def parasite_show(id)
+    def rexy_admin_show(id)
       find_by_id(id)
     end
 
-    def parasite_toggle_active(id)
+    def rexy_admin_toggle_active(id)
       record = find_by_id(id)
       record.active = !record.active
       return 'OK' if record.save
@@ -25,21 +25,21 @@ module RexyAdmin
       'FAIL'
     end
 
-    def parasite_delete(id)
+    def rexy_admin_delete(id)
       record = find_by_id(id)
       return 'OK' if record&.destroy
 
       'FAIL'
     end
 
-    def parasite_create(params = {})
+    def rexy_admin_create(params = {})
       new_record = new(params)
       return 'OK' if new_record.save
 
       new_record.errors
     end
 
-    def parasite_update(id, params = {})
+    def rexy_admin_update(id, params = {})
       record = find_by_id(id)
       return 'OK' if record.update_attributes(params)
 
