@@ -25,14 +25,14 @@ module RexyAdmin
       }
     end
 
-    def compute_record_for_table(records)
-      records.reduce([]) do |rs, rc|
-        rs << @table_columns.keys.reduce({}) do |record, key|
-          key_method = @table_columns[key][:method] || key
-          record.merge!(key.to_sym => rc.send(key_method))
-        end.merge!(actions: rc.table_actions)
-      end
-    end
+    # def compute_record_for_table(records)
+    #   records.reduce([]) do |rs, rc|
+    #     rs << @table_columns.keys.reduce({}) do |record, key|
+    #       key_method = @table_columns[key][:method] || key
+    #       record.merge!(key.to_sym => rc.send(key_method))
+    #     end.merge!(actions: rc.table_actions)
+    #   end
+    # end
 
     def rexy_admin_render_form_json(record)
       {

@@ -3,7 +3,7 @@
 class RexyAdminController < ActionController::Base
   protect_from_forgery with: :exception
   skip_before_action :verify_authenticity_token
-  before_action :authenticate, except: [:login]
+#   before_action :authenticate, except: [:login]
 
   def login
     cmd = AuthenticateAdmin.call(params)
@@ -27,6 +27,7 @@ class RexyAdminController < ActionController::Base
   end
 
   def catch_all
+    p 'path_request: ' , path_request
     if request.get?
       index
     elsif request.post?
@@ -45,7 +46,6 @@ class RexyAdminController < ActionController::Base
     paths = path.split('/')
     return show if paths.last == 'edit'
     return new if paths.last == 'new'
-
     # result = if objects.length > 1
     #            source_object = objects[-2]
     #            source_id = path.split('/')[-2].to_i
@@ -59,10 +59,10 @@ class RexyAdminController < ActionController::Base
   end
 
   def create
-    result = model.rexy_admin_create(params)
-    return render json: result if result == 'OK'
+    result = model.rexy_admin_create(params.permit!)
+    return render json: result[:result] if result[:status] == 'OK'
 
-    render json: result, status: 422
+    render json: result[:result], status: 422
   end
 
   def show
@@ -86,9 +86,9 @@ class RexyAdminController < ActionController::Base
 
   def update
     result = model.rexy_admin_update(record_id, params.permit!)
-    return render json: 'OK' if result == 'OK'
+    return render json: result[:result] if result[:status] == 'OK'
 
-    render json: result, status: 422
+    render json: result[:result], status: 422
   end
 
   def toggle_active
@@ -113,9 +113,9 @@ class RexyAdminController < ActionController::Base
   end
 
   def record_id
-    @record_id ||= path_request.split('/')
-                               .select { |e| e.match?(/^\d+$|edit|new/) }
-                               .last
-                               .to_i
+    @record_id ||= path_request.split('/')\
+                    .reject { |e| e.match?(/^edit|new/) || e.blank? }\
+                    .last\
+                    .to_i
   end
-end
+end 

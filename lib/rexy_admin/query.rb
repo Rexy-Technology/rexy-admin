@@ -41,8 +41,9 @@ module RexyAdmin
 
     def rexy_admin_query(params = {})
       set_params params
-      cols = table_columns(@params[:columns]).map { |h| h.slice(:field).values }.flatten
-      records = order(order_string).select(cols)
+      # cols = table_columns(@params[:columns]).map { |h| h.slice(:field).values }.flatten
+      # records = order(order_string).select(cols)
+      records = order(order_string)
 
       rexy_admin_render_table_json(
         records, 
@@ -51,17 +52,17 @@ module RexyAdmin
       )
     end
 
-    def filter_records(records, params, filters = [])
-      # filter = [{ key: '', value: '' }]
-      filters.inject(records) do |current_records, filter|
-        next current_records unless params[filter].present?
+    # def filter_records(records, params, filters = [])
+    #   # filter = [{ key: '', value: '' }]
+    #   filters.inject(records) do |current_records, filter|
+    #     next current_records unless params[filter].present?
 
-        model_custom_filter = get_custom_filters.detect { |f| f[:key] == filter }
-        next current_records unless model_custom_filter[:scope]
+    #     model_custom_filter = get_custom_filters.detect { |f| f[:key] == filter }
+    #     next current_records unless model_custom_filter[:scope]
 
-        current_records.send(model_custom_filter[:scope], params[filter])
-      end
-    end
+    #     current_records.send(model_custom_filter[:scope], params[filter])
+    #   end
+    # end
 
     def order_string
       "#{arrangement[:order_by]} #{arrangement[:order]}"

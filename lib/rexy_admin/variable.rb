@@ -76,8 +76,6 @@ module RexyAdmin
       name.gsub('_aws_object_key_image', '')
     end
 
-
-
     def belongs_to_assosiations
       reflect_on_all_associations(:belongs_to)
     end

@@ -32,18 +32,76 @@ module RexyAdmin
       'FAIL'
     end
 
+    # Create
     def rexy_admin_create(params = {})
-      new_record = new(params)
-      return 'OK' if new_record.save
+      return check_params_and_create(params) if @create_params_checker.present?
 
-      new_record.errors
+      default_create(params)
     end
 
-    def rexy_admin_update(id, params = {})
-      record = find_by_id(id)
-      return 'OK' if record.update_attributes(params)
+    def default_create params
+      new_record = new(params)
+      return {status: 'OK', result: {id: new_record.id}} if new_record.save
 
-      record.errors
+      {status: 'FAIL', result: new_record.errors}
+    end
+
+    def check_params_and_create params 
+      check_params_and_execute_action(params, @create_params_checker, @create_context, @create_action, 'default_create')
+    end
+    
+    # Update 
+    def rexy_admin_update(id, params = {})
+      params.merge!(id: id)
+      return check_params_and_update(params) if @update_params_checker.present?
+
+      default_update(params)
+    end
+
+    def default_update params
+      record = find_by_id(params[:id])
+      return {status: 'OK', result: {id: params[:id]}} if record.update_attributes(params)
+      
+      {status: 'FAIL', result: record.errors}
+    end
+
+    def check_params_and_update params 
+      check_params_and_execute_action(params, @update_params_checker, @update_context, @update_action, 'default_update')
+    end
+
+    # Custom
+    def check_params_and_execute_action params, params_checker, context, action , default_action
+      params_checker_cmd = params_checker.call(params: params, context: context)
+      return {status: 'FAIL', result: params_checker_cmd.errors} if params_checker_cmd.failure?
+      
+      return custom_action(action, params_checker_cmd.result) if action.present?
+        
+      send default_action, params_checker_cmd.result
+    end
+
+    def custom_action action, params
+      cmd = action.call(params)
+      return {status: 'OK', result: cmd.result} if cmd.success?
+    
+      {status: 'FAIL', result: cmd.errors}
+    end
+
+    def set_create_params_checker(create_params_checker = nil, context = {})
+      @create_params_checker = create_params_checker
+      @create_context = context
+    end
+
+    def set_create_action(create_action = nil)
+      @create_action = create_action
+    end
+
+    def set_update_params_checker(update_params_checker = nil, context = {})
+      @update_params_checker = update_params_checker
+      @update_context = context
+    end
+
+    def set_update_action(update_action = nil)
+      @update_action = update_action
     end
   end
 end

@@ -5,7 +5,7 @@
 
 class RexyAdminContrains
   def matches?(request)
-    model = request.params["model"]&.classify&.constantize
+    model = request.path.split('/')&.reject { |e| e.match?(/^\d+$|edit|new/) || e.blank? }&.last&.classify&.constantize
     model&.included_modules&.include?(RexyAdmin)
   rescue StandardError
     false
