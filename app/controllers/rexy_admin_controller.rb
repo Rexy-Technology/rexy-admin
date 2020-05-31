@@ -3,7 +3,7 @@
 class RexyAdminController < ActionController::Base
   protect_from_forgery with: :exception
   skip_before_action :verify_authenticity_token
-#   before_action :authenticate, except: [:login]
+  before_action :authenticate, except: [:login]
 
   def login
     cmd = AuthenticateAdmin.call(params)
@@ -23,11 +23,10 @@ class RexyAdminController < ActionController::Base
   end
 
   def current_admin
-    @current_admin ||= RexyAdminAuth.find_by_id(admin_token[:admin_id])
+    @current_admin ||= RexyAdmin.auth_class.find_by_id(admin_token[:admin_id])
   end
 
   def catch_all
-    p 'path_request: ' , path_request
     if request.get?
       index
     elsif request.post?
@@ -39,6 +38,14 @@ class RexyAdminController < ActionController::Base
     elsif request.delete?
       delete
     end
+  rescue => e
+    render json: {
+    "errors": {
+      "message": e,
+      "details": {}
+    }
+  }, status: 422
+
   end
 
   def index
@@ -62,7 +69,12 @@ class RexyAdminController < ActionController::Base
     result = model.rexy_admin_create(params.permit!)
     return render json: result[:result] if result[:status] == 'OK'
 
-    render json: result[:result], status: 422
+    render json: {
+      "errors": {
+        "message": result[:result],
+        "details": {}
+      }
+    }, status: 422
   end
 
   def show
@@ -88,7 +100,12 @@ class RexyAdminController < ActionController::Base
     result = model.rexy_admin_update(record_id, params.permit!)
     return render json: result[:result] if result[:status] == 'OK'
 
-    render json: result[:result], status: 422
+    render json: {
+      "errors": {
+        "message": result[:result],
+        "details": {}
+      }
+    }, status: 422
   end
 
   def toggle_active

@@ -4,6 +4,8 @@ require 'rexy_admin/query'
 require 'rexy_admin/json'
 require 'rexy_admin/action'
 
+
+
 module RexyAdmin
   def self.included(base)
     puts '------>Rexy Admin Including'
@@ -41,4 +43,5 @@ module RexyAdmin
   #     end
   #   end
   # end
+  mattr_accessor :auth_class
 end

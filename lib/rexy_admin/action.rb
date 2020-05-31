@@ -60,9 +60,10 @@ module RexyAdmin
 
     def default_update params
       record = find_by_id(params[:id])
-      return {status: 'OK', result: {id: params[:id]}} if record.update_attributes(params)
-      
-      {status: 'FAIL', result: record.errors}
+      # return {status: 'FAIL', result: "#{model_name.human} not exist."} if !record.present?
+
+      record.update_attributes(params)
+      {status: 'OK', result: {id: params[:id]}}
     end
 
     def check_params_and_update params 
