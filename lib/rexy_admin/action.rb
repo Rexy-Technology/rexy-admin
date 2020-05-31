@@ -34,7 +34,7 @@ module RexyAdmin
 
     # Create
     def rexy_admin_create(params = {})
-      return check_params_and_create(params) if @create_params_checker.present?
+      return check_params_and_create(params) if create_params_checker.present?
 
       default_create(params)
     end
@@ -47,13 +47,13 @@ module RexyAdmin
     end
 
     def check_params_and_create params 
-      check_params_and_execute_action(params, @create_params_checker, @create_context, @create_action, 'default_create')
+      check_params_and_execute_action(params, create_params_checker, create_context, create_action, 'default_create')
     end
     
     # Update 
     def rexy_admin_update(id, params = {})
       params.merge!(id: id)
-      return check_params_and_update(params) if @update_params_checker.present?
+      return check_params_and_update(params) if update_params_checker.present?
 
       default_update(params)
     end
@@ -67,7 +67,7 @@ module RexyAdmin
     end
 
     def check_params_and_update params 
-      check_params_and_execute_action(params, @update_params_checker, @update_context, @update_action, 'default_update')
+      check_params_and_execute_action(params, update_params_checker, update_context, update_action, 'default_update')
     end
 
     # Custom
@@ -86,23 +86,47 @@ module RexyAdmin
     
       {status: 'FAIL', result: cmd.errors}
     end
-
-    def set_create_params_checker(create_params_checker = nil, context = {})
+    # Set Create
+    def set_create_params_checker(create_params_checker, context)
       @create_params_checker = create_params_checker
       @create_context = context
     end
 
-    def set_create_action(create_action = nil)
+    def set_create_action(create_action)
       @create_action = create_action
     end
-
-    def set_update_params_checker(update_params_checker = nil, context = {})
+    # Set Update 
+    def set_update_params_checker(update_params_checker, context)
       @update_params_checker = update_params_checker
       @update_context = context
     end
-
-    def set_update_action(update_action = nil)
+    
+    def set_update_action(update_action)
       @update_action = update_action
+    end
+    # Create params
+    def create_params_checker create_params_checker = nil
+      @create_params_checker ||= create_params_checker
+    end
+
+    def create_context create_context = {}
+      @create_context ||= create_context
+    end
+
+    def create_action create_action = nil
+      @create_action ||= create_action
+    end
+    # Update params
+    def update_params_checker update_params_checker = nil
+      @update_params_checker ||= update_params_checker
+    end
+
+    def update_context update_context = {}
+      @update_context ||= update_context
+    end
+    
+    def update_action update_action = nil
+      @update_action ||= update_action
     end
   end
 end

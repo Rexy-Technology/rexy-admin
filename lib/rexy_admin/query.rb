@@ -93,5 +93,6 @@ module RexyAdmin
     def rexy_admin_active
       column_names.include?('active') ? where(active: true) : all
     end
+
   end
 end

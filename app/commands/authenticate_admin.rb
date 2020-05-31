@@ -24,7 +24,10 @@ class AuthenticateAdmin
   end
 
   def admin
-    @admin ||= RexyAdminAuth.find_by_email(opts[:email])
+    @admin ||= RexyAdmin.auth_class.where(RexyAdmin.auth_orm_query)
+                                   .where(RexyAdmin.auth_sql_query)
+                                   .where(RexyAdmin.login_field => opts[:email])
+                                   .first
   end
 
   attr_reader :opts
