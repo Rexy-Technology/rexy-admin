@@ -25,11 +25,24 @@ module RexyAdmin
       'FAIL'
     end
 
-    def rexy_admin_delete(id)
-      record = find_by_id(id)
-      return 'OK' if record&.destroy
+    # Delete
+    def rexy_admin_delete(id, params = {})
+      params[:ids] = [] if params[:ids].nil?
+      params[:ids] << id
+      return check_params_and_delete(params) if delete_params_checker.present?
 
-      'FAIL'
+      default_delete(params)
+    end
+
+    def default_delete params
+      records = where id: params[:ids]
+      return {status: 'OK', result: {status: 'OK'}} if params[:ids].count == records.count && records.destroy_all
+
+      {status: 'FAIL', result: "#{model_name.human} not exist."}
+    end
+
+    def check_params_and_delete params 
+      check_params_and_execute_action(params, delete_params_checker, delete_context, delete_action, 'default_delete')
     end
 
     # Create
@@ -40,10 +53,23 @@ module RexyAdmin
     end
 
     def default_create params
-      new_record = new(params)
-      return {status: 'OK', result: {id: new_record.id}} if new_record.save
+      model_pluralize_name = name.underscore.pluralize.to_sym
+      result = ''
+      create_multiple_records = params[model_pluralize_name].present?
 
-      {status: 'FAIL', result: new_record.errors}
+      if create_multiple_records
+        records = create!(params[model_pluralize_name])
+        result = {status: 'OK'}
+      else
+        p 'create(params): ' , create(params)
+        record = create(params)
+        p 'record: ' , record
+        result = {id: record.id}
+        p 'record.id: ' , record.id
+        p 'result: ' , result
+      end
+      
+      {status: 'OK', result: result}
     end
 
     def check_params_and_create params 
@@ -60,9 +86,8 @@ module RexyAdmin
 
     def default_update params
       record = find_by_id(params[:id])
-      # return {status: 'FAIL', result: "#{model_name.human} not exist."} if !record.present?
+      record.update(params)
 
-      record.update_attributes(params)
       {status: 'OK', result: {id: params[:id]}}
     end
 
@@ -128,5 +153,18 @@ module RexyAdmin
     def update_action update_action = nil
       @update_action ||= update_action
     end
+    # Delete params
+    def delete_params_checker delete_params_checker = nil
+      @delete_params_checker ||= delete_params_checker
+    end
+
+    def delete_context delete_context = {}
+      @delete_context ||= delete_context
+    end
+    
+    def delete_action delete_action = nil
+      @delete_action ||= delete_action
+    end
+    
   end
 end

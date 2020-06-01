@@ -92,10 +92,15 @@ class RexyAdminController < ActionController::Base
   end
 
   def delete
-    result = model.rexy_admin_delete(record_id)
-    return render json: result if result == 'OK'
+    result = model.rexy_admin_delete(record_id, params.permit!)
+    return render json: result[:result] if result[:status] == 'OK'
 
-    render json: result, status: 422
+    render json: {
+      "errors": {
+        "message": result[:result],
+        "details": {}
+      }
+    }, status: 422
   end
 
   def update
