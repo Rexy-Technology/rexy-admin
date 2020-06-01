@@ -17,20 +17,6 @@ module RexyAdmin
     # base.set_custom_filters
     # base.set_actions
     # base.set_formdata
-    # base.set_create_params_checker
-    # base.set_create_action
-    # base.set_update_params_checker
-    # base.set_update_action
-    # base.set_auth_orm_query
-    # base.set_auth_sql_query
-  end
-
-  def auth_orm_query
-    @auth_orm_query ||= {}
-  end
-
-  def auth_sql_query
-    @auth_sql_query ||= ''
   end
 
   def self.login_field

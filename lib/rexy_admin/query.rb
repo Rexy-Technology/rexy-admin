@@ -94,5 +94,22 @@ module RexyAdmin
       column_names.include?('active') ? where(active: true) : all
     end
 
+    # Set Create
+    def set_auth_orm_query auth_orm_query
+      @auth_orm_query = auth_orm_query
+    end
+
+    def set_auth_sql_query auth_sql_query
+      @auth_sql_query = auth_sql_query
+    end
+
+    def auth_orm_query
+      @auth_orm_query ||= {}
+    end
+  
+    def auth_sql_query
+      @auth_sql_query ||= ''
+    end
+
   end
 end
