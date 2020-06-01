@@ -87,21 +87,21 @@ module RexyAdmin
       {status: 'FAIL', result: cmd.errors}
     end
     # Set Create
-    def set_create_params_checker(create_params_checker, context)
+    def set_create_params_checker(create_params_checker = nil, context = {})
       @create_params_checker = create_params_checker
       @create_context = context
     end
 
-    def set_create_action(create_action)
+    def set_create_action(create_action = nil)
       @create_action = create_action
     end
     # Set Update 
-    def set_update_params_checker(update_params_checker, context)
+    def set_update_params_checker(update_params_checker = nil, context = {})
       @update_params_checker = update_params_checker
       @update_context = context
     end
     
-    def set_update_action(update_action)
+    def set_update_action(update_action = nil)
       @update_action = update_action
     end
     # Create params
