@@ -23,6 +23,13 @@ module RexyAdmin
     @login_field ||= :email
   end
 
+  def self.use_rexy_admin_login
+    @use_rexy_admin_login.nil? ? true : @use_rexy_admin_login
+  end
+
+  def self.use_rexy_admin_login= use
+    @use_rexy_admin_login = use
+  end
+  
   mattr_accessor :auth_class
-  mattr_reader :auth_orm_query, :auth_sql_query
 end

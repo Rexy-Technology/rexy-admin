@@ -12,9 +12,16 @@ class RexyAdminContrains
   end
 end
 
+class UseRexyAdminLogin
+  def matches?(request)
+    p 'use?: ' , RexyAdmin.use_rexy_admin_login
+    RexyAdmin.use_rexy_admin_login
+  end
+end
+
 Rails.application.routes.draw do
   match '/rexy-admin/*path', to: 'rexy_admin#catch_all',
                  format: :json, via: %i[get post put delete patch],
                  constraints: RexyAdminContrains.new
-  post 'rexy-admin/login', to: 'rexy_admin#login'
+  post 'rexy-admin/login', to: 'rexy_admin#login', constraints: UseRexyAdminLogin.new
 end

@@ -27,8 +27,15 @@ module RexyAdmin
 
     # Delete
     def rexy_admin_delete(id, params = {})
+      # Create body param "ids" if not exist in JSON body
       params[:ids] = [] if params[:ids].nil?
+      # Push path variable "id" to ids
       params[:ids] << id
+      # Filter uniq
+      params[:ids] = params[:ids].uniq
+      # If path variable "id" not exist, to_i will return 0
+      params[:ids] = params[:ids].reject {|id| id == 0 }
+
       return check_params_and_delete(params) if delete_params_checker.present?
 
       default_delete(params)
@@ -47,6 +54,8 @@ module RexyAdmin
 
     # Create
     def rexy_admin_create(params = {})
+      params = filter_params params
+      p 'create params: ', params.to_h
       return check_params_and_create(params) if create_params_checker.present?
 
       default_create(params)
@@ -61,12 +70,8 @@ module RexyAdmin
         records = create!(params[model_pluralize_name])
         result = {status: 'OK'}
       else
-        p 'create(params): ' , create(params)
-        record = create(params)
-        p 'record: ' , record
+        record = create!(params)
         result = {id: record.id}
-        p 'record.id: ' , record.id
-        p 'result: ' , result
       end
       
       {status: 'OK', result: result}
@@ -79,17 +84,17 @@ module RexyAdmin
     # Update 
     def rexy_admin_update(id, params = {})
       params.merge!(id: id)
+      params = filter_params params
       return check_params_and_update(params) if update_params_checker.present?
-
       default_update(params)
     end
-
+    
     def default_update params
       record = find_by_id(params[:id])
       record.update(params)
-
       {status: 'OK', result: {id: params[:id]}}
     end
+    
 
     def check_params_and_update params 
       check_params_and_execute_action(params, update_params_checker, update_context, update_action, 'default_update')
@@ -164,6 +169,14 @@ module RexyAdmin
     
     def delete_action delete_action = nil
       @delete_action ||= delete_action
+    end
+    # Helper
+    def filter_params params
+      filtered_params = {}
+      params.each do |key, value|
+        filtered_params[key.to_sym] = value if key.to_s.in?(column_names << "password")
+      end
+      filtered_params
     end
     
   end

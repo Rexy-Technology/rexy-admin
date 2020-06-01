@@ -143,17 +143,4 @@ class RexyAdminController < ActionController::Base
                     .to_i
   end
 
-  # Auth arams
-  def auth_orm_query auth_orm_query = {}
-    @auth_orm_query ||= RexyAdmin.auth_orm_query.present? ? RexyAdmin.auth_orm_query : auth_orm_query
-  end
-
-  def auth_sql_query auth_sql_query = ''
-    @auth_sql_query ||= RexyAdmin.auth_sql_query.present? ? RexyAdmin.auth_sql_query : auth_sql_query
-  end
-
-  def login_field login_field = :email
-    @login_field ||= RexyAdmin.login_field.present? ? RexyAdmin.login_field.to_sym : login_field
-  end
-  
 end 
