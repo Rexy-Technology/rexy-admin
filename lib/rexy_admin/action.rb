@@ -13,34 +13,49 @@
 
 module RexyAdmin
   module Action
-    def rexy_admin_show(id)
-      raise 'Action not exists.' unless :show.in? @actions
-      find_by_id(id)
+    # Show
+    def rexy_admin_show(id, params = {})
+      raise "This action is not set in model #{model_name} yet." unless :show.in? @actions
+      params.merge!(id: id)
+      return check_params_and_show(params) if @show_params_checker.present?
+
+      default_show(params)
     end
 
+    def default_show(params)
+      record = @show_custom_query.select(@show_fields).find_by_id(params[:id])
+      return {status: 'OK', result: record} if record.present?
+      
+      {status: 'FAIL', result: "#{model_name.human} not exist."}
+    end
+
+    def check_params_and_show params 
+      check_params_and_execute_command(params, @show_params_checker, @show_context, @show_command, 'default_show')
+    end
+
+    # Toggle
     def rexy_admin_toggle(id, params = {})
-      raise 'Action not exists.' unless :toggle.in? @actions
+      raise "This action is not set in model #{model_name} yet." unless :toggle.in? @actions
       params.merge!(id: id)
-      # params = filter_params params
       return check_params_and_toggle(params) if @toggle_params_checker.present?
+
       default_toggle(params)
     end
 
     def default_toggle(params)
-      record = @update_custom_query.find_by_id(params[:id])
+      record = @toggle_custom_query.find_by_id(params[:id])
       return {status: 'OK', result: {id: params[:id]}} if record.present? && record.toggle(:active) && record.save
       
       {status: 'FAIL', result: "#{model_name.human} not exist."}
     end
 
-    def check_params_and_update params 
-      check_params_and_execute_command(params, @update_params_checker, @update_context, @update_command, 'default_update')
+    def check_params_and_toggle params 
+      check_params_and_execute_command(params, @toggle_params_checker, @toggle_context, @toggle_command, 'default_toggle')
     end
-
 
     # Delete
     def rexy_admin_delete(id, params = {})
-      raise 'Action not exists.' unless :delete.in? @actions
+      raise "This action is not set in model #{model_name} yet." unless :delete.in? @actions
       # Create body param "ids" if not exist in JSON body
       params[:ids] = [] if params[:ids].nil?
       # Push path variable "id" to ids
@@ -68,7 +83,7 @@ module RexyAdmin
 
     # Create
     def rexy_admin_create(params = {})
-      raise 'Action not exists.' unless :create.in? @actions
+      raise "This action is not set in model #{model_name} yet." unless :create.in? @actions
       params = filter_params params
       return check_params_and_create(params) if @create_params_checker.present?
 
@@ -96,7 +111,7 @@ module RexyAdmin
     
     # Update 
     def rexy_admin_update(id, params = {})
-      raise 'Action not exists.' unless :update.in? @actions
+      raise "This action is not set in model #{model_name} yet." unless :update.in? @actions
       params.merge!(id: id)
       params = filter_params params
       return check_params_and_update(params) if @update_params_checker.present?
@@ -146,12 +161,13 @@ module RexyAdmin
       end
     end
 
-    def set_action(action:, params_checker: nil, context: {}, command: nil, custom_query: where(''))
+    def set_action(action:, params_checker: nil, context: {}, command: nil, custom_query: where(''), fields: [])
       raise ("action only accept these action types: #{@actions}") unless action.in? @actions
       instance_variable_set("@#{action}_params_checker", params_checker)
       instance_variable_set("@#{action}_context", context)
       instance_variable_set("@#{action}_command", command)
       instance_variable_set("@#{action}_custom_query", custom_query)
+      action == :show && instance_variable_set("@#{action}_fields", fields)
     end
 
     # Helper

@@ -11,7 +11,7 @@
 # rubocop:disable Style/Next
 # rubocop:disable BlockNesting
 
-EXCLUDE_SEARCH_STRING = %w[id created_at updated_at active].freeze
+EXCLUDE_SEARCH_STRING = %w[id created_at updated_at active password].freeze
 
 module RexyAdmin
   module Query
@@ -28,7 +28,7 @@ module RexyAdmin
 
     def arrangement
       order_by_param = @params[:order_by]&.strip&.downcase
-      order = @params[:order]&.upcase == 'ASC' ? 'ASC' : 'DESC'
+      order = @params[:order]&.upcase == 'ASCEND' ? 'ASC' : 'DESC'
       order_by = column_names.include?(order_by_param) ? order_by_param : 'created_at'
       {
         order: order,
