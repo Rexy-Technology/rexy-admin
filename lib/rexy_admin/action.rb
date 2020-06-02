@@ -17,28 +17,28 @@ module RexyAdmin
     def rexy_admin_show(id, params = {})
       raise "This action is not set in model #{model_name} yet." unless :show.in? @actions
       params.merge!(id: id)
-      p '@show_params_checker.present?: ', @show_params_checker.present?
-      return check_params_and_show(params) if @show_params_checker.present?
+      return custom_show(params) if @show_params_checker.present? || @show_command.present?
 
       default_show(params)
     end
 
     def default_show(params)
+      p 'show_fields: ', @show_fields
       record = @show_custom_query.select(@show_fields).find_by_id(params[:id])
-      return {status: 'OK', result: record} if record.present?
+      return {status: 'OK', result: @show_after_action.call(record)} if record.present?
       
       {status: 'FAIL', result: "#{model_name.human} not exist."}
     end
 
-    def check_params_and_show params 
-      check_params_and_execute_command(params, @show_params_checker, @show_context, @show_command, 'default_show')
+    def custom_show params 
+       custom_action(params, @show_params_checker, @show_context, @show_command, 'default_show')
     end
 
     # Toggle
     def rexy_admin_toggle(id, params = {})
       raise "This action is not set in model #{model_name} yet." unless :toggle.in? @actions
       params.merge!(id: id)
-      return check_params_and_toggle(params) if @toggle_params_checker.present?
+      return custom_toggle(params) if @toggle_params_checker.present? || @toggle_command.present?
 
       default_toggle(params)
     end
@@ -50,8 +50,8 @@ module RexyAdmin
       {status: 'FAIL', result: "#{model_name.human} not exist."}
     end
 
-    def check_params_and_toggle params 
-      check_params_and_execute_command(params, @toggle_params_checker, @toggle_context, @toggle_command, 'default_toggle')
+    def custom_toggle params 
+       custom_action(params, @toggle_params_checker, @toggle_context, @toggle_command, 'default_toggle')
     end
 
     # Delete
@@ -66,7 +66,7 @@ module RexyAdmin
       # If path variable "id" not exist, to_i will return 0
       params[:ids] = params[:ids].reject {|id| id == 0 }
 
-      return check_params_and_delete(params) if @delete_params_checker.present?
+      return custom_delete(params) if @delete_params_checker.present? || @delete_commtoggle_command.present?
 
       default_delete(params)
     end
@@ -78,15 +78,15 @@ module RexyAdmin
       {status: 'FAIL', result: "#{model_name.human} not exist."}
     end
 
-    def check_params_and_delete params 
-      check_params_and_execute_command(params, @delete_params_checker, @delete_context, @delete_command, 'default_delete')
+    def custom_delete params 
+       custom_action(params, @delete_params_checker, @delete_context, @delete_command, 'default_delete')
     end
 
     # Create
     def rexy_admin_create(params = {})
       raise "This action is not set in model #{model_name} yet." unless :create.in? @actions
       params = filter_params params
-      return check_params_and_create(params) if @create_params_checker.present?
+      return custom_create(params) if @create_params_checker.present? || @create_commtoggle_command.present?
 
       default_create(params)
     end
@@ -106,8 +106,8 @@ module RexyAdmin
       {status: 'OK', result: result}
     end
 
-    def check_params_and_create params 
-      check_params_and_execute_command(params, @create_params_checker, @create_context, @create_command, 'default_create')
+    def custom_create params 
+       custom_action(params, @create_params_checker, @create_context, @create_command, 'default_create')
     end
     
     # Update 
@@ -115,7 +115,8 @@ module RexyAdmin
       raise "This action is not set in model #{model_name} yet." unless :update.in? @actions
       params.merge!(id: id)
       params = filter_params params
-      return check_params_and_update(params) if @update_params_checker.present?
+      return custom_update(params) if @update_params_checker.present? || @update_commtoggle_command.present?
+
       default_update(params)
     end
     
@@ -126,18 +127,29 @@ module RexyAdmin
       {status: 'FAIL', result: "#{model_name.human} not exist."}
     end
 
-    def check_params_and_update params 
-      check_params_and_execute_command(params, @update_params_checker, @update_context, @update_command, 'default_update')
+    def custom_update params 
+       custom_action(params, @update_params_checker, @update_context, @update_command, 'default_update')
     end
 
     # Custom
-    def check_params_and_execute_command params, params_checker, context, command , default_action
+    def custom_action params, params_checker, context, command , default_action
+      return custom_action_with_params_checker(params, params_checker, context, command , default_action) if params_checker.present?
+      custom_action_without_params_checker(params, command , default_action)
+    end
+
+    def custom_action_with_params_checker params, params_checker, context, command , default_action
       params_checker_cmd = params_checker.call(params: params, context: context)
       return {status: 'FAIL', result: params_checker_cmd.errors} if params_checker_cmd.failure?
       
       return custom_command(command, params_checker_cmd.result) if command.present?
         
       send default_action, params_checker_cmd.result
+    end
+
+    def custom_action_without_params_checker params, command , default_action
+      return custom_command(command, params) if command.present?
+          
+      send default_action, params
     end
 
     def custom_command command, params
@@ -162,13 +174,13 @@ module RexyAdmin
       end
     end
 
-    def set_action(action:, params_checker: nil, context: {}, command: nil, custom_query: where(''), fields: [])
+    def set_action(action:, params_checker: nil, context: {}, command: nil, custom_query: where(''), fields: [], after_action: nil)
       raise ("action only accept these action types: #{@actions}") unless action.in? @actions
       instance_variable_set("@#{action}_params_checker", params_checker)
       instance_variable_set("@#{action}_context", context)
       instance_variable_set("@#{action}_command", command)
       instance_variable_set("@#{action}_custom_query", custom_query)
-      action == :show && instance_variable_set("@#{action}_fields", fields)
+      action == :show && instance_variable_set("@#{action}_fields", fields) && instance_variable_set("@#{action}_after_action", after_action)
     end
 
     # Helper

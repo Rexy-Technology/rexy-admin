@@ -43,7 +43,7 @@ module RexyAdmin
 
       records = @index_custom_query
       records = records.where(search_string).order(order_string).page(pagination[:page]).per(pagination[:per_page])
-      records = @index_command.call(records).result if @index_command.present?
+      records = @index_command.present? ? @index_command.call(records).result : @index_after_action.call(records)
 
       rexy_admin_render_table_json(
         records, 
@@ -81,11 +81,10 @@ module RexyAdmin
       column_names.include?('active') ? where(active: true) : all
     end
 
-    def set_index(command: nil, custom_query: where(''))
-      p '1357'
+    def set_index(command: nil, custom_query: where(''), after_action: nil)
       instance_variable_set("@index_command", command)
       instance_variable_set("@index_custom_query", custom_query)
+      instance_variable_set("@index_after_action", after_action)
     end
-    
   end
 end
