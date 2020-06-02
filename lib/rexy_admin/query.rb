@@ -11,7 +11,8 @@
 # rubocop:disable Style/Next
 # rubocop:disable BlockNesting
 
-EXCLUDE_SEARCH_STRING = %w[id created_at updated_at active password].freeze
+# EXCLUDE_SEARCH_STRING = %w[id created_at updated_at active password].freeze
+EXCLUDE_SEARCH_STRING = %w[id created_at password].freeze
 
 module RexyAdmin
   module Query

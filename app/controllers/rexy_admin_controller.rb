@@ -39,13 +39,13 @@ class RexyAdminController < ActionController::Base
     elsif request.delete?
       delete
     end
-  rescue => e
-    render json: {
-    "errors": {
-      "message": e,
-      "details": {}
-    }
-  }, status: 422
+  # rescue => e
+  #   render json: {
+  #   "errors": {
+  #     "message": e,
+  #     "details": {}
+  #   }
+  # }, status: 422
 
   end
 
@@ -67,10 +67,15 @@ class RexyAdminController < ActionController::Base
   end
 
   def show
-    result = model.rexy_admin_show(record_id)
-    return render json: model.rexy_admin_render_form_json(result) if result.present?
+    result = model.rexy_admin_show(record_id, params.permit!)
+    return render json: result[:result] if result[:status] == 'OK'
 
-    render json: 'NO RECORD', status: 422
+    render json: {
+      "errors": {
+        "message": result[:result],
+        "details": {}
+      }
+    }
   end
 
   def new
