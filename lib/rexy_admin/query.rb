@@ -20,49 +20,35 @@ module RexyAdmin
     end
 
     def pagination
-      @pagination ||= {
+      {
         page: (@params[:page].presence || 1).to_i,
         per_page: (@params[:per_page].presence || 10).to_i
       }
     end
 
     def arrangement
-      @arrangement ||= begin
-        order_by_param = @params[:order_by]&.strip&.downcase
-        order = @params[:order]&.upcase == 'ASC' ? 'ASC' : 'DESC'
-        order_by = column_names.include?(order_by_param) ? order_by_param : 'created_at'
-        {
-          order: order,
-          order_by: order_by,
-          keyword: @params[:keyword]
-        }
-      end
+      order_by_param = @params[:order_by]&.strip&.downcase
+      order = @params[:order]&.upcase == 'ASC' ? 'ASC' : 'DESC'
+      order_by = column_names.include?(order_by_param) ? order_by_param : 'created_at'
+      {
+        order: order,
+        order_by: order_by,
+        keyword: @params[:keyword]
+      }
     end
 
     def rexy_admin_query(params = {})
       set_params params
-      # cols = table_columns(@params[:columns]).map { |h| h.slice(:field).values }.flatten
-      # records = order(order_string).select(cols)
-      records = order(order_string)
+
+      records = @index_custom_query
+      records = records.where(search_string).order(order_string).page(pagination[:page]).per(pagination[:per_page])
+      records = @index_command.call(records).result if @index_command.present?
 
       rexy_admin_render_table_json(
         records, 
-        pagination.merge( total_count: records.page(pagination[:page]).per(pagination[:per_page]).total_count),
-        params
+        pagination.merge( total_count: records.count)
       )
     end
-
-    # def filter_records(records, params, filters = [])
-    #   # filter = [{ key: '', value: '' }]
-    #   filters.inject(records) do |current_records, filter|
-    #     next current_records unless params[filter].present?
-
-    #     model_custom_filter = get_custom_filters.detect { |f| f[:key] == filter }
-    #     next current_records unless model_custom_filter[:scope]
-
-    #     current_records.send(model_custom_filter[:scope], params[filter])
-    #   end
-    # end
 
     def order_string
       "#{arrangement[:order_by]} #{arrangement[:order]}"
@@ -71,7 +57,7 @@ module RexyAdmin
     def search_string
       condition_array = column_names.map do |v|
         unless EXCLUDE_SEARCH_STRING.find_index(v)
-          "COALESCE(lower(#{table_name}.#{v}), '') LIKE :keyword"
+          "COALESCE(lower(#{table_name}.#{v}), '') LIKE '%#{arrangement[:keyword]}%'"
         end
       end
       condition_array.compact.join(' OR ')
@@ -94,22 +80,11 @@ module RexyAdmin
       column_names.include?('active') ? where(active: true) : all
     end
 
-    # Set Create
-    def set_auth_orm_query auth_orm_query
-      @auth_orm_query = auth_orm_query
+    def set_index(command: nil, custom_query: where(''))
+      p '1357'
+      instance_variable_set("@index_command", command)
+      instance_variable_set("@index_custom_query", custom_query)
     end
-
-    def set_auth_sql_query auth_sql_query
-      @auth_sql_query = auth_sql_query
-    end
-
-    def auth_orm_query
-      @auth_orm_query ||= {}
-    end
-  
-    def auth_sql_query
-      @auth_sql_query ||= ''
-    end
-
+    
   end
 end

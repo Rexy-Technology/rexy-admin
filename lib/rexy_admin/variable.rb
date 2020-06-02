@@ -20,14 +20,14 @@ module RexyAdmin
     end
 
     def table_columns(custom_cols = [])
-      @table_columns ||= build_columns(
-        if custom_cols.present? 
-          custom_cols.select do |col|
-            @accessable_columns.include?(col.to_sym)
-          end
-        else
+      @table_columns = build_columns(
+        # if custom_cols.present? 
+        #   custom_cols.select do |col|
+        #     @accessable_columns.include?(col.to_sym)
+        #   end
+        # else
           @accessable_columns
-        end
+        # end
       )
     end
 
@@ -119,6 +119,14 @@ module RexyAdmin
 
     def get_formdata
       @formdata
+    end
+
+    def set_auth_query auth_query
+      @auth_query = auth_query
+    end
+
+    def auth_query
+      @auth_query ||= where('')
     end
   end
 end

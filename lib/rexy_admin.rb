@@ -17,19 +17,14 @@ module RexyAdmin
     # base.set_custom_filters
     # base.set_actions
     # base.set_formdata
+
+    base.use_actions
+    # %w[create update delete].each do |action|
+    #   base.set_action action: action  
+    # end
   end
 
-  def self.login_field
-    @login_field ||= :email
-  end
-
-  def self.use_rexy_admin_login
-    @use_rexy_admin_login.nil? ? true : @use_rexy_admin_login
-  end
-
-  def self.use_rexy_admin_login= use
-    @use_rexy_admin_login = use
-  end
-  
-  mattr_accessor :auth_class
+  mattr_accessor :auth_model, :use_rexy_admin_login, :login_field
+  @@use_rexy_admin_login = false
+  @@login_field = :email
 end

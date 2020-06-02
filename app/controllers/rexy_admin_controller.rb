@@ -23,8 +23,7 @@ class RexyAdminController < ActionController::Base
   end
 
   def current_admin
-    @current_admin ||= RexyAdmin.auth_class.where(model.auth_orm_query)
-                                           .where(model.auth_sql_query)
+    @current_admin ||= RexyAdmin.auth_model.where(model.auth_query)
                                            .find_by_id(admin_token[:admin_id])
   end
 
@@ -40,13 +39,13 @@ class RexyAdminController < ActionController::Base
     elsif request.delete?
       delete
     end
-  rescue => e
-    render json: {
-    "errors": {
-      "message": e,
-      "details": {}
-    }
-  }, status: 422
+  # rescue => e
+  #   render json: {
+  #   "errors": {
+  #     "message": e,
+  #     "details": {}
+  #   }
+  # }, status: 422
 
   end
 
@@ -67,6 +66,25 @@ class RexyAdminController < ActionController::Base
     render json: result
   end
 
+  def show
+    result = model.rexy_admin_show(record_id)
+    return render json: model.rexy_admin_render_form_json(result) if result.present?
+
+    render json: 'NO RECORD', status: 422
+  end
+
+  def new
+    result = model.get_form_data
+    render json: { form_data: result }
+  end
+
+  def toggle_active
+    result = model.rexy_admin_toggle_active(record_id)
+    return render json: result if result == 'OK'
+
+    render json: result, status: 422
+  end
+
   def create
     result = model.rexy_admin_create(params.permit!)
     return render json: result[:result] if result[:status] == 'OK'
@@ -77,18 +95,6 @@ class RexyAdminController < ActionController::Base
         "details": {}
       }
     }, status: 422
-  end
-
-  def show
-    result = model.rexy_admin_show(record_id)
-    return render json: model.rexy_admin_render_form_json(result) if result.present?
-
-    render json: 'NO RECORD', status: 422
-  end
-
-  def new
-    result = model.get_table_data
-    render json: { form_data: result }
   end
 
   def delete
@@ -113,13 +119,6 @@ class RexyAdminController < ActionController::Base
         "details": {}
       }
     }, status: 422
-  end
-
-  def toggle_active
-    result = model.rexy_admin_toggle_active(record_id)
-    return render json: result if result == 'OK'
-
-    render json: result, status: 422
   end
 
   private

@@ -14,7 +14,6 @@ end
 
 class UseRexyAdminLogin
   def matches?(request)
-    p 'use?: ' , RexyAdmin.use_rexy_admin_login
     RexyAdmin.use_rexy_admin_login
   end
 end

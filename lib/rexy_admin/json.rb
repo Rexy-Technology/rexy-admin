@@ -13,9 +13,9 @@
 
 module RexyAdmin
   module Json
-    def rexy_admin_render_table_json(records, pagination, params)
+    def rexy_admin_render_table_json(records, pagination)
       {
-        metadata: @table_columns,
+        # metadata: @table_columns,
         records: records,
         # records: compute_record_for_table(records),
         # entity: table_name,

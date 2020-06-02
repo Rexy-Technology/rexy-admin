@@ -24,7 +24,7 @@ class AuthenticateAdmin
   end
 
   def admin
-    @admin ||= RexyAdmin.auth_class.find_by(RexyAdmin.login_field => opts[:email])
+    @admin ||= RexyAdmin.auth_model.find_by(RexyAdmin.login_field => opts[RexyAdmin.login_field])
   end
 
   attr_reader :opts
