@@ -18,13 +18,25 @@ module RexyAdmin
       find_by_id(id)
     end
 
-    def rexy_admin_toggle_active(id)
-      record = find_by_id(id)
-      record.active = !record.active
-      return 'OK' if record.save
-
-      'FAIL'
+    def rexy_admin_toggle(id, params = {})
+      raise 'Action not exists.' unless :toggle.in? @actions
+      params.merge!(id: id)
+      # params = filter_params params
+      return check_params_and_toggle(params) if @toggle_params_checker.present?
+      default_toggle(params)
     end
+
+    def default_toggle(params)
+      record = @update_custom_query.find_by_id(params[:id])
+      return {status: 'OK', result: {id: params[:id]}} if record.present? && record.toggle(:active) && record.save
+      
+      {status: 'FAIL', result: "#{model_name.human} not exist."}
+    end
+
+    def check_params_and_update params 
+      check_params_and_execute_command(params, @update_params_checker, @update_context, @update_command, 'default_update')
+    end
+
 
     # Delete
     def rexy_admin_delete(id, params = {})
@@ -121,8 +133,12 @@ module RexyAdmin
 
     # Set action
     def use_actions *args
-      raise ('use_actions only accept 4 action types: :create, :update, :delete :show, :all') unless args.all?{|a| a.in? %i[create update delete show all]}
-      args = :all.in?(args) ? %i[create update delete show] : args
+      args = args.uniq
+      all_actions = %i[create update delete show toggle all]
+      total_all_actions = all_actions.count
+      raise ("use_actions only accept #{total_all_actions} action #{"type".pluralize(total_all_actions)}: #{all_actions}") unless args.all?{|a| a.in? all_actions}
+
+      args = :all.in?(args) ? all_actions.reject {|e| e == :all} : args
       @actions = args || []
 
       @actions.each do |action|
