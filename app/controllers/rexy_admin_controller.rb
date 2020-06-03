@@ -62,12 +62,12 @@ class RexyAdminController < ActionController::Base
     #          else
     #            model.rexy_admin_query(params.permit!)
     #          end
-    result = model.rexy_admin_query(params.permit!)
+    result = model.rexy_admin_query((params.merge(current_admin: current_admin).permit!))
     render json: result
   end
 
   def show
-    result = model.rexy_admin_show(record_id, params.permit!)
+    result = model.rexy_admin_show(record_id, (params.merge(current_admin: current_admin).permit!))
     return render json: result[:result] if result[:status] == 'OK'
 
     render json: {
@@ -84,7 +84,7 @@ class RexyAdminController < ActionController::Base
   end
 
   def toggle_active
-    result = model.rexy_admin_toggle(record_id, params.permit!)
+    result = model.rexy_admin_toggle(record_id, (params.merge(current_admin: current_admin).permit!))
     return render json: result[:result] if result[:status] == 'OK'
 
     render json: {
@@ -96,7 +96,7 @@ class RexyAdminController < ActionController::Base
   end
 
   def create
-    result = model.rexy_admin_create(params.permit!)
+    result = model.rexy_admin_create(params.merge(current_admin: current_admin).permit!)
     return render json: result[:result] if result[:status] == 'OK'
 
     render json: {
@@ -108,7 +108,7 @@ class RexyAdminController < ActionController::Base
   end
 
   def delete
-    result = model.rexy_admin_delete(record_id, params.permit!)
+    result = model.rexy_admin_delete(record_id, (params.merge(current_admin: current_admin).permit!))
     return render json: result[:result] if result[:status] == 'OK'
 
     render json: {
@@ -120,7 +120,7 @@ class RexyAdminController < ActionController::Base
   end
 
   def update
-    result = model.rexy_admin_update(record_id, params.permit!)
+    result = model.rexy_admin_update(record_id, (params.merge(current_admin: current_admin).permit!))
     return render json: result[:result] if result[:status] == 'OK'
 
     render json: {

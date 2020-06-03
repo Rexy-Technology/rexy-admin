@@ -23,7 +23,6 @@ module RexyAdmin
     end
 
     def default_show(params)
-      p 'show_fields: ', @show_fields
       record = @show_custom_query.select(@show_fields).find_by_id(params[:id])
       return {status: 'OK', result: @show_after_action.call(record)} if record.present?
       
@@ -84,6 +83,7 @@ module RexyAdmin
 
     # Create
     def rexy_admin_create(params = {})
+      p 'params: ' , params
       raise "This action is not set in model #{model_name} yet." unless :create.in? @actions
       params = filter_params params
       return custom_create(params) if @create_params_checker.present? || @create_commtoggle_command.present?
@@ -138,7 +138,7 @@ module RexyAdmin
     end
 
     def custom_action_with_params_checker params, params_checker, context, command , default_action
-      params_checker_cmd = params_checker.call(params: params, context: context)
+      params_checker_cmd = params_checker.call(params: params, context: context.merge(current_admin: params[:current_admin]))
       return {status: 'FAIL', result: params_checker_cmd.errors} if params_checker_cmd.failure?
       
       return custom_command(command, params_checker_cmd.result) if command.present?
