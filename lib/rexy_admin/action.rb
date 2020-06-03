@@ -23,8 +23,10 @@ module RexyAdmin
     end
 
     def default_show(params)
-      record = @show_custom_query.select(@show_fields).find_by_id(params[:id])
-      return {status: 'OK', result: @show_after_action.call(record)} if record.present?
+      fields = @show_fields.presence || column_names - @show_exclude_fields
+      p 'fields: ', fields
+      record = @show_custom_query.select(fields).find_by_id(params[:id])
+      return {status: 'OK', result: @show_after_action.call(record, params[:current_admin])} if record.present?
       
       {status: 'FAIL', result: "#{model_name.human} not exist."}
     end
@@ -174,11 +176,13 @@ module RexyAdmin
       end
     end
 
-    def set_action(action:, params_checker: nil, context: {}, command: nil, custom_query: where(''), fields: [], after_action: nil)
+    def set_action(action:, params_checker: nil, context: {}, command: nil, custom_query: where(''), fields: [], exclude_fields: [], after_action: nil)
       raise ("action only accept these action types: #{@actions}") unless action.in? @actions
 
       instance_variable_set("@#{action}_custom_query", custom_query)
-      action.in?([:show, :index]) && instance_variable_set("@#{action}_fields", fields) && instance_variable_set("@#{action}_after_action", after_action)
+      action.in?([:show, :index]) && instance_variable_set("@#{action}_fields", fields) && 
+                                     instance_variable_set("@#{action}_exclude_fields", exclude_fields) && 
+                                     instance_variable_set("@#{action}_after_action", after_action)
       !action.in?([:index]) && instance_variable_set("@#{action}_params_checker", params_checker)
       instance_variable_set("@#{action}_context", context)
       instance_variable_set("@#{action}_command", command)

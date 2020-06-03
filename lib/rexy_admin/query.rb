@@ -56,7 +56,8 @@ module RexyAdmin
     end
 
     def records_filtered_by_default
-      records = @index_custom_query.select(@index_fields)
+      fields = @index_fields.presence || column_names - @index_exclude_fields
+      records = @index_custom_query.select(@fields)
       records = paginate_and_arrange_records records
       records = @index_after_action.call(records, @params[:current_admin]) if @index_after_action.present?
       result_if_success records
