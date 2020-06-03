@@ -39,13 +39,13 @@ class RexyAdminController < ActionController::Base
     elsif request.delete?
       delete
     end
-  # rescue => e
-  #   render json: {
-  #   "errors": {
-  #     "message": e,
-  #     "details": {}
-  #   }
-  # }, status: 422
+  rescue => e
+    render json: {
+    "errors": {
+      "message": e,
+      "details": {}
+    }
+  }, status: 422
 
   end
 
@@ -87,8 +87,15 @@ class RexyAdminController < ActionController::Base
   end
 
   def new
-    result = model.get_form_data
-    render json: { form_data: result }
+    result = model.rexy_admin_get_form_data((params.merge(current_admin: current_admin).permit!))
+    return render json: result[:result] if result[:status] == 'OK'
+
+    render json: {
+      "errors": {
+        "message": result[:result],
+        "details": {}
+      }
+    }
   end
 
   def toggle_active
@@ -104,6 +111,7 @@ class RexyAdminController < ActionController::Base
   end
 
   def create
+    p 'create1608'
     result = model.rexy_admin_create(params.merge(current_admin: current_admin).permit!)
     return render json: result[:result] if result[:status] == 'OK'
 
