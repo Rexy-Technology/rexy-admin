@@ -40,19 +40,29 @@ module RexyAdmin
 
     def rexy_admin_query(params = {})
       set_params params
-      
-      records = []
-      if @index_command.present?
-        records = filter_records_by_custom_command
-      else
-        records = filter_records_by_custom_query
-      end
 
-      # Default query
-      records = records.where(search_string).order(order_string).page(pagination[:page]).per(pagination[:per_page])
-      # Add after action
-      records = @index_after_action.call(records, params[:current_admin]) if @index_after_action.present?
+      return @index_command.present? ? records_filtered_by_custom_command : records_filtered_by_default
+    end
 
+    def records_filtered_by_custom_command
+      if @index_params_checker.present?
+        params_checker_cmd = @index_params_checker.call(params: @params, context: @index_context.merge(current_admin: @params[:current_admin]))
+        return {status: 'FAIL', result: params_checker_cmd.errors} if params_checker_cmd.failure?
+        @params = params_checker_cmd.result
+      end 
+      records = @index_command.call(@params).result
+      records = paginated_and_arranged_records records
+      result_if_success records
+    end
+
+    def records_filtered_by_default
+      records = @index_custom_query.select(@index_fields)
+      records = paginate_and_arrange_records records
+      records = @index_after_action.call(records, @params[:current_admin]) if @index_after_action.present?
+      result_if_success records
+    end
+
+    def result_if_success records
       {
         status: 'OK', result: rexy_admin_render_table_json(
           records, 
@@ -61,12 +71,8 @@ module RexyAdmin
       }
     end
 
-    def filter_records_by_custom_command
-      @index_command.call(params).result
-    end
-
-    def filter_records_by_custom_query
-      @index_custom_query.select(@index_fields)
+    def paginate_and_arrange_records records
+      records.where(search_string).order(order_string).page(pagination[:page]).per(pagination[:per_page])
     end
 
     def order_string
@@ -99,12 +105,5 @@ module RexyAdmin
       column_names.include?('active') ? where(active: true) : all
     end
 
-    # def set_index(command: nil, context: {}, custom_query: where(''), fields: [],  after_action: nil)
-    #   instance_variable_set("@index_custom_query", custom_query)
-    #   instance_variable_set("@index_fields", fields)
-    #   instance_variable_set("@index_context", context)
-    #   instance_variable_set("@index_command", command)
-    #   instance_variable_set("@index_after_action", after_action)
-    # end
   end
 end

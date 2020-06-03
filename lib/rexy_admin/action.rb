@@ -17,7 +17,7 @@ module RexyAdmin
     def rexy_admin_show(id, params = {})
       raise "This action is not set in model #{model_name} yet." unless :show.in? @actions
       params.merge!(id: id)
-      return custom_show(params) if @show_params_checker.present? || @show_command.present?
+      return custom_show(params) if @show_params_checker.present?
 
       default_show(params)
     end
@@ -37,7 +37,7 @@ module RexyAdmin
     def rexy_admin_toggle(id, params = {})
       raise "This action is not set in model #{model_name} yet." unless :toggle.in? @actions
       params.merge!(id: id)
-      return custom_toggle(params) if @toggle_params_checker.present? || @toggle_command.present?
+      return custom_toggle(params) if @toggle_params_checker.present?
 
       default_toggle(params)
     end
@@ -65,7 +65,7 @@ module RexyAdmin
       # If path variable "id" not exist, to_i will return 0
       params[:ids] = params[:ids].reject {|id| id == 0 }
 
-      return custom_delete(params) if @delete_params_checker.present? || @delete_commtoggle_command.present?
+      return custom_delete(params) if @delete_params_checker.present?
 
       default_delete(params)
     end
@@ -86,7 +86,7 @@ module RexyAdmin
       p 'params: ' , params
       raise "This action is not set in model #{model_name} yet." unless :create.in? @actions
       params = filter_params params
-      return custom_create(params) if @create_params_checker.present? || @create_commtoggle_command.present?
+      return custom_create(params) if @create_params_checker.present?
 
       default_create(params)
     end
@@ -115,7 +115,7 @@ module RexyAdmin
       raise "This action is not set in model #{model_name} yet." unless :update.in? @actions
       params.merge!(id: id)
       params = filter_params params
-      return custom_update(params) if @update_params_checker.present? || @update_commtoggle_command.present?
+      return custom_update(params) if @update_params_checker.present?
 
       default_update(params)
     end
