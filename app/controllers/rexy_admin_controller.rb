@@ -23,7 +23,7 @@ class RexyAdminController < ActionController::Base
   end
 
   def current_admin
-    @current_admin ||= RexyAdmin.auth_model.where(model.auth_query)
+    @current_admin ||= RexyAdmin.auth_model.auth_query
                                            .find_by_id(admin_token[:admin_id])
   end
 

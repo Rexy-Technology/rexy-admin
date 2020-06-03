@@ -83,15 +83,14 @@ module RexyAdmin
 
     # Create
     def rexy_admin_create(params = {})
-      p 'params: ' , params
       raise "This action is not set in model #{model_name} yet." unless :create.in? @actions
-      params = filter_params params
       return custom_create(params) if @create_params_checker.present?
 
       default_create(params)
     end
 
     def default_create params
+      params = filter_params params
       result = ''
       create_multiple_records = params[:objects].present?
 
@@ -114,13 +113,13 @@ module RexyAdmin
     def rexy_admin_update(id, params = {})
       raise "This action is not set in model #{model_name} yet." unless :update.in? @actions
       params.merge!(id: id)
-      params = filter_params params
       return custom_update(params) if @update_params_checker.present?
 
       default_update(params)
     end
     
     def default_update params
+      params = filter_params params
       record = @update_custom_query.find_by_id(params[:id])
       return {status: 'OK', result: {id: params[:id]}} if record.present? && record.update(params)
       
@@ -138,7 +137,7 @@ module RexyAdmin
     end
 
     def custom_action_with_params_checker params, params_checker, context, command , default_action
-      params_checker_cmd = params_checker.call(params: params, context: context.merge(current_admin: params[:current_admin]))
+      params_checker_cmd = params_checker.call(params: params, context: context.merge(current_admin: params["current_admin"]))
       return {status: 'FAIL', result: params_checker_cmd.errors} if params_checker_cmd.failure?
       
       return custom_command(command, params_checker_cmd.result) if command.present?
