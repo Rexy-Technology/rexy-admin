@@ -126,7 +126,7 @@ module RexyAdmin
     end
 
     def auth_query
-      @auth_query ||= where('')
+      @auth_query ||= RexyAdmin.auth_model.where('')
     end
   end
 end
