@@ -39,13 +39,13 @@ class RexyAdminController < ActionController::Base
     elsif request.delete?
       delete
     end
-  rescue => e
-    render json: {
-    "errors": {
-      "message": e,
-      "details": {}
-    }
-  }, status: 422
+  # rescue => e
+  #   render json: {
+  #   "errors": {
+  #     "message": e,
+  #     "details": {}
+  #   }
+  # }, status: 422
 
   end
 
@@ -63,7 +63,15 @@ class RexyAdminController < ActionController::Base
     #            model.rexy_admin_query(params.permit!)
     #          end
     result = model.rexy_admin_query((params.merge(current_admin: current_admin).permit!))
-    render json: result
+    return render json: result[:result] if result[:status] == 'OK'
+
+    render json: {
+      "errors": {
+        "message": result[:result],
+        "details": {}
+      }
+    }
+
   end
 
   def show

@@ -162,7 +162,7 @@ module RexyAdmin
     # Set action
     def use_actions *args
       args = args.uniq
-      all_actions = %i[create update delete show toggle all]
+      all_actions = %i[create update delete show toggle index all]
       total_all_actions = all_actions.count
       raise ("use_actions only accept #{total_all_actions} action #{"type".pluralize(total_all_actions)}: #{all_actions}") unless args.all?{|a| a.in? all_actions}
 
@@ -176,11 +176,12 @@ module RexyAdmin
 
     def set_action(action:, params_checker: nil, context: {}, command: nil, custom_query: where(''), fields: [], after_action: nil)
       raise ("action only accept these action types: #{@actions}") unless action.in? @actions
-      instance_variable_set("@#{action}_params_checker", params_checker)
+
+      instance_variable_set("@#{action}_custom_query", custom_query)
+      action.in?([:show, :index]) && instance_variable_set("@#{action}_fields", fields) && instance_variable_set("@#{action}_after_action", after_action)
+      !action.in?([:index]) && instance_variable_set("@#{action}_params_checker", params_checker)
       instance_variable_set("@#{action}_context", context)
       instance_variable_set("@#{action}_command", command)
-      instance_variable_set("@#{action}_custom_query", custom_query)
-      action == :show && instance_variable_set("@#{action}_fields", fields) && instance_variable_set("@#{action}_after_action", after_action)
     end
 
     # Helper
@@ -194,3 +195,4 @@ module RexyAdmin
     
   end
 end
+
