@@ -75,6 +75,7 @@ module RexyAdmin
       instance_variable_set("@#{action}_custom_query", custom_query)
       instance_variable_set("@#{action}_context", context)
       instance_variable_set("@#{action}_command", command)
+      instance_variable_set("@#{action}_params_checker", params_checker)
 
       action.in?([:show, :index]) && instance_variable_set("@#{action}_fields", fields) && 
                                      instance_variable_set("@#{action}_exclude_fields", exclude_fields) && 
