@@ -12,7 +12,7 @@
 # rubocop:disable BlockNesting
 
 EXCLUDE_KEYS = %w[password_digest created_at updated_at].freeze
-
+ACTIONS = %i[create update delete show toggle index]
 module RexyAdmin
   module Variable
     def set_admin_table_columns(columns = [])

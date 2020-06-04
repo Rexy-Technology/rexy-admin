@@ -39,6 +39,7 @@ module RexyAdmin
     end
 
     def rexy_admin_query(params = {})
+      p 'query'
       set_params params
 
       return @index_command.present? ? records_filtered_by_custom_command : records_filtered_by_default
@@ -56,8 +57,8 @@ module RexyAdmin
     end
 
     def records_filtered_by_default
-      fields = @index_fields.presence || column_names - @index_exclude_fields
-      records = @index_custom_query.select(@fields)
+      fields =  (@index_fields.presence || column_names - @index_exclude_fields) - EXCLUDE_KEYS
+      records = @index_custom_query.select(fields)
       records = paginate_and_arrange_records records
       records = @index_after_action.call(records, @params[:current_admin]) if @index_after_action.present?
       result_if_success records

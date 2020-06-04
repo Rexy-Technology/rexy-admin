@@ -5,9 +5,7 @@
 
 class RexyAdminContrains
   def matches?(request)
-    p 'hehe1: ' , request.path
     model = request.path.split('/')&.reject { |e| e.match?(/^\d+$|edit|new/) || e.blank? }&.last&.classify&.constantize
-    p 'hehe2'
     model&.included_modules&.include?(RexyAdmin)
   rescue => e
     e

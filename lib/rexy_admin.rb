@@ -19,9 +19,6 @@ module RexyAdmin
     # base.set_formdata
 
     base.use_actions
-    # %w[create update delete].each do |action|
-    #   base.set_action action: action  
-    # end
   end
 
   mattr_accessor :auth_model, :use_rexy_admin_login, :login_field

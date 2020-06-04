@@ -52,17 +52,15 @@ module RexyAdmin
 
     # Set action
     def use_actions only: [], except: []
-      raise ("Please choose only one in two options: [only, except]") if only.present? && except.present?
+      raise ("Please choose only one in two options only or except") if only.present? && except.present?
       
-      all_actions = %i[create update delete show toggle index all]
-      total_all_actions = all_actions.count
+      total_all_actions = ACTIONS.count
 
-      actions = except.present? ? (all_actions - except) : (only.presence || all_actions)
+      actions = except.present? ? (ACTIONS - except) : (only.presence || ACTIONS)
       actions = actions.uniq
-      raise ("use_actions only accept #{total_all_actions} action #{"type".pluralize(total_all_actions)}: #{all_actions}") unless actions.all?{|a| a.in? all_actions}
+      raise ("use_actions only accept #{total_all_actions} action #{"type".pluralize(total_all_actions)}: #{ACTIONS}") unless actions.all?{|a| a.in? ACTIONS}
       
-      actions = :all.in?(actions) ? all_actions.reject {|e| e == :all} : actions
-      @actions = actions || []
+      @actions = actions || ACTIONS
 
       @actions.each do |action|
         set_action action: action
@@ -70,21 +68,23 @@ module RexyAdmin
     end
 
     def set_action(action:, params_checker: nil, context: {}, command: nil, custom_query: where(''), fields: [], exclude_fields: [], after_action: nil)
-      raise ("action only accept these action types: #{@actions}") unless action.in? @actions
+      raise ("action only accept these action types: #{@actions}") unless action.in? ACTIONS
 
+      # @actions << action
+      # @actions.uniq
       instance_variable_set("@#{action}_custom_query", custom_query)
+      instance_variable_set("@#{action}_context", context)
+      instance_variable_set("@#{action}_command", command)
+
       action.in?([:show, :index]) && instance_variable_set("@#{action}_fields", fields) && 
                                      instance_variable_set("@#{action}_exclude_fields", exclude_fields) && 
                                      instance_variable_set("@#{action}_after_action", after_action)
-      !action.in?([:index]) && instance_variable_set("@#{action}_params_checker", params_checker)
-      instance_variable_set("@#{action}_context", context)
-      instance_variable_set("@#{action}_command", command)
     end
 
     def filter_params params
       filtered_params = {}
       params.each do |key, value|
-        filtered_params[key.to_sym] = value if key.to_s.in?(column_names << "password")
+        filtered_params[key.to_sym] = value if key.to_s.in?(column_names + ["password"])
       end
       filtered_params
     end
