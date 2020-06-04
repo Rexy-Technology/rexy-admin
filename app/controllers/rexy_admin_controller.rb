@@ -64,48 +64,67 @@ class RexyAdminController < ActionController::Base
     result = model.rexy_admin_query((params.merge(current_admin: current_admin).permit!))
     return render json: result[:result] if result[:status] == 'OK'
 
-    render json: {
-      "errors": {
-        "message": result[:result],
-        "details": {}
-      }
+    errors = result[:result].is_a?(String) ? {
+      "message": result[:result],
+      "details": {}
+    } : {
+      "message": result[:result][:errors][0][:message],
+      "details": result[:result][:errors][0][:details]
     }
 
+    render json: {
+      "errors": errors
+    }, status: 422
   end
 
   def show
     result = model.rexy_admin_show(record_id, (params.merge(current_admin: current_admin).permit!))
     return render json: result[:result] if result[:status] == 'OK'
 
-    render json: {
-      "errors": {
-        "message": result[:result],
-        "details": {}
-      }
+    errors = result[:result].is_a?(String) ? {
+      "message": result[:result],
+      "details": {}
+    } : {
+      "message": result[:result][:errors][0][:message],
+      "details": result[:result][:errors][0][:details]
     }
+
+    render json: {
+      "errors": errors
+    }, status: 422
   end
 
   def new
     result = model.rexy_admin_get_form_data((params.merge(current_admin: current_admin).permit!))
     return render json: result[:result] if result[:status] == 'OK'
 
-    render json: {
-      "errors": {
-        "message": result[:result],
-        "details": {}
-      }
+    errors = result[:result].is_a?(String) ? {
+      "message": result[:result],
+      "details": {}
+    } : {
+      "message": result[:result][:errors][0][:message],
+      "details": result[:result][:errors][0][:details]
     }
+
+    render json: {
+      "errors": errors
+    }, status: 422
   end
 
   def toggle_active
     result = model.rexy_admin_toggle(record_id, (params.merge(current_admin: current_admin).permit!))
     return render json: result[:result] if result[:status] == 'OK'
 
+    errors = result[:result].is_a?(String) ? {
+      "message": result[:result],
+      "details": {}
+    } : {
+      "message": result[:result][:errors][0][:message],
+      "details": result[:result][:errors][0][:details]
+    }
+
     render json: {
-      "errors": {
-        "message": result[:result],
-        "details": {}
-      }
+      "errors": errors
     }, status: 422
   end
 
@@ -113,11 +132,16 @@ class RexyAdminController < ActionController::Base
     result = model.rexy_admin_create(params.merge(current_admin: current_admin).permit!)
     return render json: result[:result] if result[:status] == 'OK'
 
+    errors = result[:result].is_a?(String) ? {
+      "message": result[:result],
+      "details": {}
+    } : {
+      "message": result[:result][:errors][0][:message],
+      "details": result[:result][:errors][0][:details]
+    }
+
     render json: {
-      "errors": {
-        "message": result[:result],
-        "details": {}
-      }
+      "errors": errors
     }, status: 422
   end
 
@@ -125,11 +149,16 @@ class RexyAdminController < ActionController::Base
     result = model.rexy_admin_delete(record_id, (params.merge(current_admin: current_admin).permit!))
     return render json: result[:result] if result[:status] == 'OK'
 
+    errors = result[:result].is_a?(String) ? {
+      "message": result[:result],
+      "details": {}
+    } : {
+      "message": result[:result][:errors][0][:message],
+      "details": result[:result][:errors][0][:details]
+    }
+
     render json: {
-      "errors": {
-        "message": result[:result],
-        "details": {}
-      }
+      "errors": errors
     }, status: 422
   end
 
@@ -137,11 +166,16 @@ class RexyAdminController < ActionController::Base
     result = model.rexy_admin_update(record_id, (params.merge(current_admin: current_admin).permit!))
     return render json: result[:result] if result[:status] == 'OK'
 
+    errors = result[:result].is_a?(String) ? {
+      "message": result[:result],
+      "details": {}
+    } : {
+      "message": result[:result][:errors][0][:message],
+      "details": result[:result][:errors][0][:details]
+    }
+
     render json: {
-      "errors": {
-        "message": result[:result],
-        "details": {}
-      }
+      "errors": errors
     }, status: 422
   end
 
