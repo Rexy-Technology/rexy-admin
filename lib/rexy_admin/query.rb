@@ -39,7 +39,6 @@ module RexyAdmin
     end
 
     def rexy_admin_query(params = {})
-      p 'query'
       set_params params
 
       return @index_command.present? ? records_filtered_by_custom_command : records_filtered_by_default

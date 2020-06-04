@@ -10,10 +10,6 @@ module RexyAdmin
 
     def default_show(params)
       fields =  (@show_fields.presence || column_names - @show_exclude_fields) - EXCLUDE_KEYS
-      p 'EXCLUDE_KEYS: ' , EXCLUDE_KEYS
-      p '(@show_fields.presence || column_names - @show_exclude_fields): ' , (@show_fields.presence || column_names - @show_exclude_fields)
-      p 'column_names: ' , column_names
-      p 'fields: ' , fields
       record = @show_custom_query.select(fields).find_by_id(params[:id])
       return {status: 'OK', result: @show_after_action.call(record, params[:current_admin])} if record.present?
       

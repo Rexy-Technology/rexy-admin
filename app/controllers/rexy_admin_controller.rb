@@ -110,7 +110,6 @@ class RexyAdminController < ActionController::Base
   end
 
   def create
-    p 'create1608'
     result = model.rexy_admin_create(params.merge(current_admin: current_admin).permit!)
     return render json: result[:result] if result[:status] == 'OK'
 

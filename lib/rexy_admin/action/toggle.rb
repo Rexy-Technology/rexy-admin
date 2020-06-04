@@ -1,7 +1,6 @@
 module RexyAdmin
   module Action
     def rexy_admin_toggle(id, params = {})
-      p '@actions: ' , @actions
       raise "This action is not set in model #{model_name} yet." unless :toggle.in? @actions
       params.merge!(id: id)
       return custom_toggle(params) if @toggle_params_checker.present?
