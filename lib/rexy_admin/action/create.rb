@@ -2,7 +2,6 @@ module RexyAdmin
   module Action
     def rexy_admin_create(params = {})
       raise "This action is not set in model #{model_name} yet." unless :create.in? @actions
-      p '@create_params_checker.present?: ' , @create_params_checker.present?
       return custom_create(params) if @create_params_checker.present?
 
       default_create(params)
