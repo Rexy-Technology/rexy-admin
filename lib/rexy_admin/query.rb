@@ -50,32 +50,30 @@ module RexyAdmin
         return {status: 'FAIL', result: params_checker_cmd.errors} if params_checker_cmd.failure?
         @params = params_checker_cmd.result
       end 
-      records = @index_command.call(@params).result
-      records = paginate_and_arrange_records records
-      result_if_success records
+      records, total_count = @index_command.call(@params.merge(pagination: pagination, arrangement: arrangement)).result
+      result_if_success records, pagination.merge(total_count: total_count)
     end
 
     def records_filtered_by_default
       fields =  (@index_fields.presence || column_names - @index_exclude_fields) - EXCLUDE_KEYS
       records = @index_custom_query.select(fields)
-      records = paginate_and_arrange_records records
+      records, total_count = paginate_and_arrange_records records
       records = @index_after_action.call(records, @params[:current_admin]) if @index_after_action.present?
-      result_if_success records
+      result_if_success records, pagination.merge(total_count: total_count)
     end
 
-    def result_if_success records
+    def result_if_success records, pagination
       {
         status: 'OK', result: rexy_admin_render_table_json(
           records, 
-          pagination.merge( total_count: @total_count)
+          pagination
         )
       }
     end
 
     def paginate_and_arrange_records records
       records_before_limit = records.where(search_string).order(order_string)
-      @total_count = records_before_limit.size
-      records_before_limit.page(pagination[:page]).per(pagination[:per_page])
+      records_before_limit.page(pagination[:page]).per(pagination[:per_page]), records_before_limit.size
     end
 
     def order_string
