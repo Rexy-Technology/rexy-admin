@@ -73,7 +73,7 @@ module RexyAdmin
 
     def paginate_and_arrange_records records
       records_before_limit = records.where(search_string).order(order_string)
-      records_before_limit.page(pagination[:page]).per(pagination[:per_page]), records_before_limit.size
+      [records_before_limit.page(pagination[:page]).per(pagination[:per_page]), records_before_limit.size]
     end
 
     def order_string
