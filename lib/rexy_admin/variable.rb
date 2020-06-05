@@ -11,7 +11,7 @@
 # rubocop:disable Style/Next
 # rubocop:disable BlockNesting
 
-EXCLUDE_KEYS = %w[password_digest created_at updated_at].freeze
+EXCLUDE_KEYS = %w[password_digest created_at deleted_at].freeze
 ACTIONS = %i[create update delete show toggle index]
 module RexyAdmin
   module Variable

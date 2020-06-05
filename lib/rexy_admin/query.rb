@@ -51,7 +51,7 @@ module RexyAdmin
         @params = params_checker_cmd.result
       end 
       records = @index_command.call(@params).result
-      records = paginated_and_arranged_records records
+      records = paginate_and_arrange_records records
       result_if_success records
     end
 
@@ -67,13 +67,15 @@ module RexyAdmin
       {
         status: 'OK', result: rexy_admin_render_table_json(
           records, 
-          pagination.merge( total_count: records.count)
+          pagination.merge( total_count: @total_count)
         )
       }
     end
 
     def paginate_and_arrange_records records
-      records.where(search_string).order(order_string).page(pagination[:page]).per(pagination[:per_page])
+      records_before_limit = records.where(search_string).order(order_string)
+      @total_count = records_before_limit.size
+      records_before_limit.page(pagination[:page]).per(pagination[:per_page])
     end
 
     def order_string

@@ -38,13 +38,13 @@ class RexyAdminController < ActionController::Base
     elsif request.delete?
       delete
     end
-  rescue => e
-    render json: {
-    "errors": {
-      "message": e,
-      "details": {}
-    }
-  }, status: 422
+  # rescue => e
+  #   render json: {
+  #   "errors": {
+  #     "message": e,
+  #     "details": {}
+  #   }
+  # }, status: 422
 
   end
 
