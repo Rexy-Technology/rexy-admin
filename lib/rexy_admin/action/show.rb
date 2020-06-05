@@ -11,7 +11,8 @@ module RexyAdmin
     def default_show(params)
       fields =  (@show_fields.presence || column_names - @show_exclude_fields) - EXCLUDE_KEYS
       record = @show_custom_query.select(fields).find_by_id(params[:id])
-      return {status: 'OK', result: @show_after_action.call(record, params[:current_admin])} if record.present?
+      record  = @show_after_action.call(record, params[:current_admin]) if record.present? && @show_after_action.present?
+      return {status: 'OK', result: record}
       
       {status: 'FAIL', result: "#{model_name.human} not exist."}
     end
