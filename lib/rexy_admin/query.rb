@@ -11,9 +11,8 @@
 # rubocop:disable Style/Next
 # rubocop:disable BlockNesting
 
-# EXCLUDE_SEARCH_STRING = %w[id created_at updated_at active password].freeze
 EXCLUDE_SEARCH_STRING = %w[id created_at password].freeze
-
+EXCLUDE_KEYS_STRING = %w[password_digest created_at deleted_at].freeze
 module RexyAdmin
   module Query
     def set_params(params)
@@ -28,9 +27,9 @@ module RexyAdmin
     end
 
     def arrangement
-      order_by_param = @params[:order_by]&.strip&.downcase
+      order_by = @params[:order_by]&.strip&.downcase
       order = @params[:order]&.upcase == 'ASCEND' ? 'ASC' : 'DESC'
-      order_by = column_names.include?(order_by_param) ? order_by_param : 'created_at'
+      # order_by = column_names.include?(order_by_param) ? order_by_param : 'created_at'
       {
         order: order,
         order_by: order_by,
@@ -55,8 +54,11 @@ module RexyAdmin
     end
 
     def records_filtered_by_default
-      fields =  (@index_fields.presence || column_names - @index_exclude_fields) - EXCLUDE_KEYS
-      records = @index_custom_query.select(fields)
+      # p '@index_foreign_fields: ' , @index_foreign_fields
+      # p 'joins: ' , relate_model_names
+      # p 'select: ' , full_keys_string
+      # p 'search: ' , full_search_string
+      records = joins(relate_model_names).select(full_keys_string)
       records, total_count = paginate_and_arrange_records records
       records = @index_after_action.call(records, @params[:current_admin]) if @index_after_action.present?
       result_if_success records, pagination.merge(total_count: total_count)
@@ -72,21 +74,122 @@ module RexyAdmin
     end
 
     def paginate_and_arrange_records records
-      records_before_limit = records.where(search_string).order(order_string)
+      records_before_limit = records.where(full_search_string).order(order_string)
       [records_before_limit.page(pagination[:page]).per(pagination[:per_page]), records_before_limit.size]
     end
 
-    def order_string
-      "#{arrangement[:order_by]} #{arrangement[:order]}"
+    def belongs_to_or_has_one_relate_model_names
+      belongs_to_names = reflect_on_all_associations(:belongs_to).map(&:name)
+      has_one_names = reflect_on_all_associations(:has_one).map(&:name)
+      (belongs_to_names + has_one_names).uniq
     end
 
-    def search_string
-      condition_array = column_names.map do |v|
+    def relate_model_names
+      @index_foreign_fields.map { |foreign_field| foreign_field[0]}\
+                           .select { |relation_model_name| relation_model_name.in? belongs_to_or_has_one_relate_model_names}
+    end
+
+    def order_string
+      "#{order_by_string} #{arrangement[:order]}"
+    end
+
+    def order_by_string
+      order_by = ''
+      @index_fields.each do|v|
+        if arrangement[:order_by] == v.to_s
+          order_by = "#{table_name}.#{arrangement[:order_by]}" 
+          break
+        end
+      end
+      return order_by if order_by.present?
+
+      @index_foreign_fields.each do |relation|
+        foreign_name = relation[0]
+        if foreign_name.in? belongs_to_or_has_one_relate_model_names
+          foreign_model = foreign_name.to_s.classify.constantize
+          foreign_table_name = foreign_model.table_name
+          relation.drop(1).map do |foreign_field|
+            if arrangement[:order_by] == "#{foreign_model.name.underscore}_#{foreign_field}"
+              order_by = "#{foreign_table_name}.#{foreign_field}"
+              break
+            end
+          end
+        end
+      end
+      return order_by if order_by.present?
+
+      "#{table_name}.created_at"
+    end
+
+    def full_keys_string
+      primary_keys_string + (foreign_keys_string.present? ? (', ' + foreign_keys_string) : '')
+    end
+
+    def primary_keys_string
+      @full_keys_tracking_string = []
+      primary_keys_string = @index_fields.map do |v|
+        unless EXCLUDE_KEYS_STRING.find_index(v)
+          @full_keys_tracking_string << "#{table_name}.#{v}"
+          "#{table_name}.#{v}"
+        end
+      end
+      primary_keys_string.compact.join(', ')
+    end
+
+    def foreign_keys_string
+      return '' unless @index_foreign_fields.present?
+      @foreign_keys_string ||= @index_foreign_fields.map do |relation|
+                                foreign_name = relation[0]
+                                if foreign_name.in? belongs_to_or_has_one_relate_model_names
+                                  foreign_model = foreign_name.to_s.classify.constantize
+                                  foreign_table_name = foreign_model.table_name
+                                  relation.drop(1).map do |foreign_field|
+                                    unless EXCLUDE_KEYS_STRING.find_index(foreign_field)
+                                      parsed_to_snake_case_foreign_field = "#{foreign_model.name.underscore}_#{foreign_field}"
+                                      check_if_field_name_already_exist(parsed_to_snake_case_foreign_field)
+
+                                      "#{foreign_table_name}.#{foreign_field} as #{foreign_model.name.underscore}_#{foreign_field}" 
+                                    end
+                                  end
+                                end
+                              end
+      @foreign_keys_string.compact.join(', ')
+    end
+
+    def check_if_field_name_already_exist(parsed_to_snake_case_foreign_field)
+      field_name_already_exist = @full_keys_tracking_string.find_index(parsed_to_snake_case_foreign_field)
+      raise("Field name #{parsed_to_snake_case_foreign_field} already exist.") if field_name_already_exist
+      @full_keys_tracking_string << parsed_to_snake_case_foreign_field
+    end
+
+    def full_search_string
+      primary_search_string + (foreign_search_string.present? ? ' OR ' + foreign_search_string : '')
+    end
+
+    def primary_search_string
+      primary_search_string = @index_fields.map do |v|
         unless EXCLUDE_SEARCH_STRING.find_index(v)
           "COALESCE(lower(#{table_name}.#{v}), '') LIKE '%#{arrangement[:keyword]}%'"
         end
       end
-      condition_array.compact.join(' OR ')
+      primary_search_string.compact.join(' OR ')
+    end
+
+    def foreign_search_string
+      return '' unless @index_foreign_fields.present?
+      foreign_search_string = @index_foreign_fields.map do |relation|
+                                foreign_name = relation[0]
+                                if foreign_name.in? belongs_to_or_has_one_relate_model_names
+                                  foreign_model = foreign_name.to_s.classify.constantize
+                                  foreign_table_name = foreign_model.table_name
+                                  relation.drop(1).map do |foreign_field|
+                                    unless EXCLUDE_SEARCH_STRING.find_index(foreign_field)
+                                      "COALESCE(lower(#{foreign_table_name}.#{foreign_field}), '') LIKE '%#{arrangement[:keyword]}%'" 
+                                    end
+                                  end
+                                end
+                              end
+      foreign_search_string.compact.join(' OR ')
     end
 
     def add_actions(records)

@@ -11,8 +11,8 @@
 # rubocop:disable Style/Next
 # rubocop:disable BlockNesting
 
-EXCLUDE_KEYS = %w[password_digest created_at deleted_at].freeze
 ACTIONS = %i[create update delete show toggle index]
+
 module RexyAdmin
   module Variable
     def set_admin_table_columns(columns = [])
@@ -37,7 +37,7 @@ module RexyAdmin
                     hash.merge!(col_name.to_s => columns_hash[col_name.to_s])
                   end
                 else
-                  columns_hash.except!(*EXCLUDE_KEYS)
+                  columns_hash.except!(*EXCLUDE_KEYS_STRING)
                 end
       sort_columns(map_types(columns))
     end
