@@ -65,19 +65,17 @@ module RexyAdmin
     end
 
     def set_action(action:, params_checker: nil, context: {}, command: nil, custom_query: where(''),
-                   fields: [], foreign_fields: [], exclude_fields: [], after_action: nil)
-
+                   fields: [], associations: [], exclude_fields: [], after_action: nil)
       raise ("action only accept these action types: #{@actions}") unless action.in? ACTIONS
 
-      # @actions << action
-      # @actions.uniq
       instance_variable_set("@#{action}_custom_query", custom_query)
       instance_variable_set("@#{action}_context", context)
       instance_variable_set("@#{action}_command", command)
       instance_variable_set("@#{action}_params_checker", params_checker)
-      action.in?([:show]) && instance_variable_set("@#{action}_exclude_fields", exclude_fields)
-      action.in?([:index]) && instance_variable_set("@#{action}_foreign_fields", [foreign_fields.uniq])
-      action.in?([:show, :index]) && instance_variable_set("@#{action}_fields", fields.uniq) && 
+
+      action.in?([:show, :index]) && instance_variable_set("@#{action}_associations", associations) && 
+                                     instance_variable_set("@#{action}_exclude_fields", exclude_fields) &&
+                                     instance_variable_set("@#{action}_fields", (fields&.uniq&.presence || column_names - exclude_fields) - EXCLUDE_KEYS_STRING) && 
                                      instance_variable_set("@#{action}_after_action", after_action)
     end
 
