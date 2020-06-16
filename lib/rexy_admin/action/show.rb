@@ -33,7 +33,7 @@ module RexyAdmin
       @show_associations.each_with_index do |association, index|
         raise "Associations must be a array of hashes." unless association.is_a?(Hash)
         raise "Field model is required." unless association.key?(:model)
-        raise "Association model must be a belongs_to or has_one." unless association[:model].model_name.singular.to_sym.in? belongs_to_or_has_one_relate_model_names
+        # raise "Association model must be a belongs_to or has_one." unless association[:model].model_name.singular.to_sym.in? belongs_to_or_has_one_relate_model_names
         @show_associations[index][:fields] = association[:fields].presence || []
         (association[:fields].presence || []).each { |association_field| raise("Association fields not exists.") unless association_field.to_s.in? association[:model].column_names }
       end
@@ -58,11 +58,11 @@ module RexyAdmin
      @show_associations.map { |association_field| association_field[:model].model_name.singular.to_sym }
     end
 
-    def belongs_to_or_has_one_relate_model_names
-      belongs_to_names = reflect_on_all_associations(:belongs_to).map(&:name)
-      has_one_names = reflect_on_all_associations(:has_one).map(&:name)
-      (belongs_to_names + has_one_names).uniq
-    end
+    # def belongs_to_or_has_one_relate_model_names
+    #   belongs_to_names = reflect_on_all_associations(:belongs_to).map(&:name)
+    #   has_one_names = reflect_on_all_associations(:has_one).map(&:name)
+    #   (belongs_to_names + has_one_names).uniq
+    # end
 
     # Select
     def show_select_string

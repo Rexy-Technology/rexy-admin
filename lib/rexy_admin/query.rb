@@ -54,12 +54,12 @@ module RexyAdmin
     end
 
     def records_filtered_by_default
-      check_if_associations_valid @index_associations
+      @index_associations = check_if_associations_valid self, @index_associations
       # p '@index_associations: ' , @index_associations
       # p 'joins: ' , join_array
       # p 'select: ' , select_string
       # p 'search: ' , search_string
-      records = joins(join_array).select(select_string)
+      records = joins(join_array).includes(join_array).select(select_string)
       
       records, total_count = paginate_and_arrange_records records
 
@@ -68,18 +68,21 @@ module RexyAdmin
       result_if_success records, pagination.merge(total_count: total_count)
     end
 
-   def check_if_associations_valid associations
+    def check_if_associations_valid parent_model, associations
       associations.map.with_index do |association, index|
         raise "Associations must be a array of hashes." unless association.is_a?(Hash)
         raise "Model is required." unless association.key?(:model)
-        # raise "Association model must be a belongs_to or has_one." unless association[:model].model_name.singular.to_sym.in? belongs_to_or_has_one_relate_model_names
+        raise("Association model not have any relation with model #{association[:model]} .") unless
+          association[:model].model_name.singular.to_sym.in?(belongs_to_or_has_one_relate_model_names(parent_model)) ||
+          association[:model].model_name.plural.to_sym.in?(has_many_model_names(parent_model))
         (association[:fields].presence || []).each { |association_field| raise("Association fields not exists.") unless association_field.to_s.in? association[:model].column_names }
-        # To add "fields" key as default
+        # To add "fields = []" key as default
         formatted_association = {
           model: association[:model],
-          fields: association[:fields].presence || []
+          fields: association[:fields].presence || [],
+          is_has_many_relation: is_has_many_relation?(parent_model, association[:model])
         }
-        formatted_association[:associations] = check_if_associations_valid(association[:associations]) if association.key?(:associations)
+        formatted_association[:associations] = check_if_associations_valid(association[:model], association[:associations]) if association.key?(:associations)
         formatted_association
       end
     end
@@ -94,75 +97,102 @@ module RexyAdmin
     end
 
     def paginate_and_arrange_records records
-      p 'search_string: ' , search_string
-      p 'order_string: ' , order_string
+      # p 'search_string: ' , search_string
+      # p 'order_string: ' , order_string
       records = records.where(search_string).order(order_string).page(pagination[:page]).per(pagination[:per_page])
       [records, records.total_count]
     end
 
+    # Add associations fields
     def add_associations_fields_to_records associations, records
       records.map do |record|
-        formatted_record('', associations, record.attributes.transform_keys(&:to_sym))
+        hash_record = record.attributes.transform_keys(&:to_sym)
+        formatted_record('', associations, hash_record, record)
       end
     end
-    
-    def formatted_record parent_notation, associations, hash_record
+
+    def formatted_record parents_encode_name, associations, hash_record, record
       associations.each do |association|
         next unless association[:fields].present?
+        model_name = association[:is_has_many_relation] ? association[:model].model_name.plural : association[:model].model_name.singular
+        added_parents_encode_name = "#{parents_encode_name}#{model_name}__"
     
-        parent_encode_name = "#{parent_notation}#{association[:model].model_name.singular}__"
-    
-        current_formatted_hash_record = formatted_hash_record(parent_encode_name, association, hash_record)
+        current_formatted_hash_record = formatted_hash_record(added_parents_encode_name, association, hash_record, record)
         hash_record = current_formatted_hash_record
         next unless association.key?(:associations)
     
-        child_keys_string = formatted_record(parent_encode_name, association[:associations], hash_record)
+        child_keys_string = formatted_record(added_parents_encode_name, association[:associations], hash_record, record)
         hash_record = child_keys_string
       end
       hash_record
     end
     
-    def deep_set(hash, value, *keys)
-      keys[0...-1].inject(hash) do |acc, h|
-        acc.public_send(:[], h)
-      end.public_send(:[]=, keys.last, value)
+    def formatted_hash_record parents_encode_name, association, hash_record, record
+      if association[:is_has_many_relation]
+        # Example of format as a has_many_relate: suppliers: [{name: 'a', age: 3}, {name: 'b', age: 4}]
+        format_hash_record_if_relation_is_has_many(parents_encode_name, association, hash_record, record)
+      else
+        # Example of format as a belongs_to_or_has_one_relate: supplier: {name: 'a', age: 3}
+        format_hash_record_if_relation_is_belongs_to_or_has_one(parents_encode_name, association, hash_record,)
+      end
     end
-    
-    def formatted_hash_record parent_encode_name, association, hash_record
+
+    def format_hash_record_if_relation_is_belongs_to_or_has_one(parents_encode_name, association, hash_record)
+      parent_associations_array = parents_encode_name.split('__').map(&:to_sym)
       model_object = {}
       association[:fields].each do |association_field|
-        key = "#{parent_encode_name}#{association_field}".to_sym
+        key = "#{parents_encode_name}#{association_field}".to_sym
         model_object[association_field] = hash_record[key]
         hash_record.delete(key)
       end
-      deep_set(hash_record, model_object, *parent_encode_name.split('__').map(&:to_sym))
+      # Example: parents_encode_name = material__supplier__supplier_detail => hash_record[:material][:supplier][:supplier_detail] = model_object
+      deep_set_hash(hash_record, model_object, parent_associations_array)
+      hash_record
+    end
+
+    def format_hash_record_if_relation_is_has_many(parents_encode_name, association, hash_record, record)
+      parent_associations_array = parents_encode_name.split('__').map(&:to_sym)
+
+      has_many_records = deep_get_instance(record, *(parent_associations_array))
+      formatted_records = has_many_records.map do |record|
+                            model_object = {}
+                            association[:fields].each do |association_field|
+                              model_object[association_field] = record.send(association_field)
+                            end
+                            model_object
+                          end
+      deep_set_hash(hash_record, formatted_records, parent_associations_array)
       hash_record
     end
 
     # Joins
-    def to_model_name model
-      model.model_name.singular.to_sym
+    def to_model_name parent_model, model
+      return model.model_name.singular.to_sym if model.model_name.singular.to_sym.in?(belongs_to_or_has_one_relate_model_names(parent_model))
+      model.model_name.plural.to_sym
     end
     
     def join_array
-      to_join_array @index_associations
+      to_join_array self, @index_associations
     end
 
-
-    def to_join_array associations
+    def to_join_array parent_model, associations
       associations.map do |association|
-        model = to_model_name(association[:model])
+        model = to_model_name(parent_model, association[:model])
         next(model) unless association.key?(:associations)
 
-        child_models = to_join_array(association[:associations])
+        child_models = to_join_array(association[:model], association[:associations])
         {model => [*child_models]}
       end
     end
 
-    def belongs_to_or_has_one_relate_model_names
-      belongs_to_names = reflect_on_all_associations(:belongs_to).map(&:name)
-      has_one_names = reflect_on_all_associations(:has_one).map(&:name)
+    def belongs_to_or_has_one_relate_model_names model
+      belongs_to_names = model.reflect_on_all_associations(:belongs_to).map(&:name)
+      has_one_names = model.reflect_on_all_associations(:has_one).map(&:name)
       (belongs_to_names + has_one_names).uniq
+    end
+
+    def has_many_model_names model
+      model.reflect_on_all_associations(:has_many).map(&:name)
     end
 
     # Select
@@ -177,29 +207,30 @@ module RexyAdmin
       primary_keys_string.compact.join(', ')
     end
 
-    def to_association_keys_string parent_notation , associations
+    def to_association_keys_string parents_encode_name , associations
       association_keys_string = associations.map do |association|
                                   next unless association[:fields].present?
-                                  parent_encode_name = "#{parent_notation}#{association[:model].model_name.singular}__"
+                                  model_name = association[:is_has_many_relation] ? association[:model].model_name.plural : association[:model].model_name.singular
+                                  added_parents_encode_name = "#{parents_encode_name}#{model_name}__"
                                   
-                                  current_keys_string = to_current_keys_string(association, parent_encode_name, parent_notation)
+                                  current_keys_string = to_current_keys_string(association, added_parents_encode_name, parents_encode_name)
                                   next(current_keys_string) unless association.key?(:associations)
                                   
-                                  child_keys_string = to_association_keys_string(parent_encode_name, association[:associations])
+                                  child_keys_string = to_association_keys_string(added_parents_encode_name, association[:associations])
                                   current_keys_string + child_keys_string.presence || ''
                                 end
       association_keys_string&.compact&.join
     end
     
-    def to_current_keys_string association, parent_encode_name, parent_notation
+    def to_current_keys_string association, added_parents_encode_name, parents_encode_name
       current_keys_string = association[:fields].map do |association_field|
         unless EXCLUDE_KEYS_STRING.find_index(association_field)
-          current_encode_name = "#{parent_encode_name}#{association_field}"
+          current_encode_name = "#{added_parents_encode_name}#{association_field}"
           "#{association[:model].table_name}.#{association_field} as #{current_encode_name}" 
         end
       end
       current_keys_string = current_keys_string&.compact&.join(', ')
-      is_outest_hash = parent_notation == ''
+      is_outest_hash = parents_encode_name == ''
       current_keys_string.present? ? (is_outest_hash ? current_keys_string :  ', ' + current_keys_string) : ''
     end
     
@@ -210,72 +241,27 @@ module RexyAdmin
       full_association_keys_string.present? ? ', ' + full_association_keys_string : ''
     end
 
-    # def association_keys_string
-    #   return '' unless @index_associations.present?
-    #   association_keys_string = @index_associations.map do |association|
-    #                                 next unless association[:fields].present?
-    #                                 association[:fields].map do |association_field|
-    #                                   unless EXCLUDE_KEYS_STRING.find_index(association_field)
-    #                                     "#{association[:model].table_name}.#{association_field} as #{association[:model].model_name.singular}__#{association_field}" 
-    #                                   end
-    #                                 end
-    #                               end
-    #   association_keys_string = association_keys_string&.compact&.join(', ')
-
-    #   association_keys_string.present? ? ',  ' + association_keys_string : ''
-    # end
-
     # Search
     def search_string
-      primary_search_string + association_search_string
-    end
-
-    def primary_search_string
-      primary_search_string = @index_fields.map do |v|
-        unless EXCLUDE_SEARCH_STRING.find_index(v)
-          "COALESCE(lower(#{table_name}.#{v}), '') LIKE '%#{arrangement[:keyword]}%'"
-        end
-      end
-      primary_search_string.compact.join(' OR ')
-    end
-
-    def association_search_string
-      return '' unless @index_associations.present?
-      association_search_string = @index_associations.map do |association|
-                                    association[:fields].present? ? association[:fields].map do |association_field|
-                                                                      unless EXCLUDE_SEARCH_STRING.find_index(association_field)
-                                                                        "COALESCE(lower(#{association[:model].table_name}.#{association_field}), '') LIKE '%#{arrangement[:keyword]}%'"
-                                                                      end
-                                                                    end
-                                                                  : nil
-                                  end
-      association_search_string = association_search_string&.compact&.join(' OR ')
-      association_search_string.present? ? ' OR ' + association_search_string : ''
+      search_string = keys_array.map do |v|
+                        # Example: "materials.id", "materials.supplier_id"
+                        unless v.split('.').last == 'id' || v.last(3) == '_id'
+                          "COALESCE(lower(#{v}), '') LIKE '%#{arrangement[:keyword]}%'"
+                        end
+                      end
+      search_string.compact.join(' OR ')
     end
 
     # Order
     def keys_array
-      [primary_keys_array + association_keys_array].flatten
-    end
-
-    def primary_keys_array
-      primary_keys_array = @index_fields.map do |v|
-        "#{table_name}.#{v}" unless EXCLUDE_KEYS_STRING.find_index(v)
+      select_string.split(', ').map do |v|
+        # Example: remove all " as " to get an associations array
+        if ' as '.in? v
+          index = v.index ' as '
+          next(v[0..index-1])
+        end
+        v
       end
-      primary_keys_array.compact
-    end
-
-    def association_keys_array
-      return [] unless @index_associations.present?
-      @association_keys_array ||= @index_associations.map do |association|
-                                      association[:fields].present? ? association[:fields].map do |association_field|
-                                                                        unless EXCLUDE_KEYS_STRING.find_index(association_field)
-                                                                          "#{association[:model].table_name}.#{association_field}"
-                                                                        end
-                                                                      end
-                                                                    : nil
-                                   end
-      @association_keys_array&.select{ |association| association.present? }
     end
 
     def order_string
@@ -292,13 +278,11 @@ module RexyAdmin
       end
       return order_by if order_by.present?
 
-
       return @parsed_to_pluralize_order_by if association_order_by_valid
 
       "#{table_name}.created_at"
     end
 
-      
     def association_order_by_valid
       order_by = arrangement[:order_by].to_s
       array_order_by = order_by.split('.')
@@ -313,6 +297,40 @@ module RexyAdmin
     end
 
     # Etc
+    def is_has_many_relation? parent_model, model
+      return false unless parent_model.present?
+
+      model_name = model.model_name.singular.to_sym
+      belongs_to_or_has_one_relate_model_names = belongs_to_or_has_one_relate_model_names(parent_model)
+      return !model_name.in?(belongs_to_or_has_one_relate_model_names)
+    end
+
+    def deep_set_hash(hash, value, keys)
+      # {
+      #   :a => {
+      #     :b => {
+      #       c: 'd'
+      #     }
+      #   }
+      # }
+      # ==> 
+      # {
+      #   :b => {
+      #     c: 'd'
+      #   }
+      # }
+      #  Use inject to get to the deepest field, then set value to it.
+      keys[0...-1].inject(hash) do |deeper_hash, h|
+        deeper_hash[h]
+      end[keys.last] = value
+    end
+
+    def deep_get_instance(instance, *keys)
+      keys[0...-1].inject(instance) do |deeper_instance, h|
+        deeper_instance.send h
+      end.send keys.last
+    end
+
     def add_actions(records)
       records.map(&:add_actions)
     end
