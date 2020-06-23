@@ -58,10 +58,10 @@ module RexyAdmin
       # p 'joins: ' , index_join_array
       # p 'select: ' , index_select_string
       records = joins(index_join_array).select(index_select_string)
-      records = paginate_and_arrange_records records
+      records, total_count = paginate_and_arrange_records records
       records = index_add_associations_fields_to_records(@index_associations, records)
       records = @index_after_action.call(records, @params[:current_admin]) if @index_after_action.present?
-      result_if_success records, pagination.merge(total_count: records.length)
+      result_if_success records, pagination.merge(total_count: total_count)
     end
 
     def check_if_associations_valid parent_model, associations
@@ -82,7 +82,6 @@ module RexyAdmin
     end
 
     def result_if_success records, pagination
-      p '5: ' ,records
       {
         status: 'OK', result: rexy_admin_render_table_json(
           records, 
@@ -94,7 +93,8 @@ module RexyAdmin
     def paginate_and_arrange_records records
       # p 'search_string: ' , search_string
       # p 'order_string: ' , order_string
-      records.where(search_string).order(order_string).page(pagination[:page]).per(pagination[:per_page])
+      records = records.where(search_string).order(order_string).page(pagination[:page]).per(pagination[:per_page])
+      [records, records.total_count]
     end
 
     # Add associations fields

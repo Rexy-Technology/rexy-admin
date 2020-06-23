@@ -31,11 +31,10 @@ module RexyAdmin
     end
 
     def form_records_filtered_by_default
-      p 'form_select_string: ' , form_select_string
       records = select(form_select_string)
-      records = form_paginate_and_arrange_records(records)
+      records, total_count = form_paginate_and_arrange_records(records)
       records = @form_after_action.call(records, @params[:current_admin]) if @form_after_action.present?
-      result_if_success records, pagination.merge(total_count: records.length)
+      result_if_success records, pagination.merge(total_count: total_count)
     end
 
     # Select
@@ -44,8 +43,8 @@ module RexyAdmin
     end
 
     def form_paginate_and_arrange_records records
-      p 'form_search_string: ' , form_search_string
-      records.where(form_search_string).page(pagination[:page]).per(pagination[:per_page])
+      records = records.where(form_search_string).page(pagination[:page]).per(pagination[:per_page])
+      [records, records.total_count]
     end
 
     # Search
