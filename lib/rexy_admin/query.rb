@@ -39,7 +39,6 @@ module RexyAdmin
 
     def rexy_admin_query(params = {})
       set_params params
-
       return @index_command.present? ? records_filtered_by_custom_command : records_filtered_by_default
     end
 
@@ -83,6 +82,7 @@ module RexyAdmin
     end
 
     def result_if_success records, pagination
+      p '5: ' ,records
       {
         status: 'OK', result: rexy_admin_render_table_json(
           records, 

@@ -65,7 +65,7 @@ module RexyAdmin
     end
 
     def set_action(action:, params_checker: nil, context: {}, command: nil, custom_query: where(''),
-                   fields: [], associations: [], exclude_fields: [], after_action: nil)
+                   fields: [], search_fields: [], associations: [], exclude_fields: [], after_action: nil)
       raise ("action only accept these action types: #{@actions}") unless action.in? ACTIONS
 
       instance_variable_set("@#{action}_custom_query", custom_query)
@@ -73,10 +73,14 @@ module RexyAdmin
       instance_variable_set("@#{action}_command", command)
       instance_variable_set("@#{action}_params_checker", params_checker)
 
-      action.in?([:show, :index]) && instance_variable_set("@#{action}_associations", associations) && 
-                                     instance_variable_set("@#{action}_exclude_fields", exclude_fields) &&
-                                     instance_variable_set("@#{action}_fields", (fields&.uniq&.presence || column_names - exclude_fields) - EXCLUDE_KEYS_STRING) && 
-                                     instance_variable_set("@#{action}_after_action", after_action)
+      fields = (fields&.uniq&.presence || column_names - exclude_fields) - EXCLUDE_KEYS_STRING
+      action.in?([:show, :index, :form]) && instance_variable_set("@#{action}_associations", associations) && 
+                                              instance_variable_set("@#{action}_exclude_fields", exclude_fields) &&
+                                              instance_variable_set("@#{action}_fields", fields) && 
+                                              instance_variable_set("@#{action}_after_action", after_action)
+
+      search_fields = search_fields&.uniq&.presence || fields                                               
+      action.in?([:form]) && instance_variable_set("@form_search_fields", search_fields)
     end
 
     def filter_params params

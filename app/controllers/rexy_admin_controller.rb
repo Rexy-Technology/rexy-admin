@@ -53,6 +53,7 @@ class RexyAdminController < ActionController::Base
     paths = path.split('/')
     return show if paths.last == 'edit'
     return new if paths.last == 'new'
+    return form if paths.last == 'form'
     # result = if objects.length > 1
     #            source_object = objects[-2]
     #            source_id = path.split('/')[-2].to_i
@@ -87,6 +88,18 @@ class RexyAdminController < ActionController::Base
 
   def new
     result = model.rexy_admin_get_form_data((params.merge(current_admin: current_admin).permit!))
+    return render json: result[:result] if result[:status] == 'OK'
+
+    render json: {
+      "errors": result[:result].is_a?(String) ? {
+        "message": result[:result],
+        "details": {}
+      } : result[:result][:errors][0]
+    }, status: 422
+  end
+
+  def form
+    result = model.rexy_admin_form(params.merge(current_admin: current_admin).permit!)
     return render json: result[:result] if result[:status] == 'OK'
 
     render json: {
@@ -153,7 +166,7 @@ class RexyAdminController < ActionController::Base
 
   def model
     @model ||= path_request.split('/')
-                           .reject { |e| e.match?(/^\d+$|edit|new/) || e.blank? }
+                           .reject { |e| e.match?(/^\d+$|edit|new|form/) || e.blank? }
                            .last
                            .classify
                            .constantize
@@ -161,7 +174,7 @@ class RexyAdminController < ActionController::Base
 
   def record_id
     @record_id ||= path_request.split('/')\
-                    .reject { |e| e.match?(/^edit|new/) || e.blank? }\
+                    .reject { |e| e.match?(/^edit|new|form/) || e.blank? }\
                     .last\
                     .to_i
   end
