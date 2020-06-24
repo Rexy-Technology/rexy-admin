@@ -55,7 +55,7 @@ module RexyAdmin
     def records_filtered_by_default
       @index_associations = check_if_associations_valid self, @index_associations
       # p '@index_associations: ' , @index_associations
-      # p 'joins: ' , index_join_array
+      p 'joins: ' , index_join_array
       # p 'select: ' , index_select_string
       records = joins(index_join_array).select(index_select_string)
       records, total_count = paginate_and_arrange_records records
@@ -68,8 +68,15 @@ module RexyAdmin
       associations.map.with_index do |association, index|
         raise "Associations must be a array of hashes." unless association.is_a?(Hash)
         raise "Model is required." unless association.key?(:model)
-        raise("#{association[:model].to_s} not belongs_to or has_one #{parent_model.to_s}.") unless
-          association[:model].model_name.singular.to_sym.in?(belongs_to_or_has_one_relate_model_names(parent_model))
+        # p '1: ', association[:model].model_name.singular.to_sym
+        # p '2: ', belongs_to_or_has_one_relate_model_names(parent_model)
+        # p '3: ', association[:model].model_name.plural.to_sym
+        # p '4: ', has_many_model_names(parent_model)
+        raise("#{association[:model].to_s} not having any relation with #{parent_model.to_s}.") unless
+          (
+            association[:model].model_name.singular.to_sym.in?(belongs_to_or_has_one_relate_model_names(parent_model)) || 
+            association[:model].model_name.plural.to_sym.in?(has_many_model_names(parent_model))
+          )
         (association[:fields].presence || []).each { |association_field| raise("Association fields not exists.") unless association_field.to_s.in? association[:model].column_names }
         # To add "fields = []" key as default
         formatted_association = {

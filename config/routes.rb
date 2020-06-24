@@ -5,10 +5,10 @@
 
 class RexyAdminContrains
   def matches?(request)
-    model = request.path.split('/')&.reject { |e| e.match?(/^\d+$|edit|new/) || e.blank? }&.last&.classify&.constantize
+    model = request.path.split('/')&.reject { |e| e.match?(/^\d+$|edit|new|form/) || e.blank? }&.last&.classify&.constantize
     model&.included_modules&.include?(RexyAdmin)
   rescue => e
-    e
+    false
   end
 end
 
