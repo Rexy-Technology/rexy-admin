@@ -58,7 +58,7 @@ module RexyAdmin
       raise ("use_actions only accept #{total_all_actions} action #{"type".pluralize(total_all_actions)}: #{ACTIONS}") unless actions.all?{|a| a.in? ACTIONS}
       
       @actions = actions || ACTIONS
-
+      p '@actions: ' , @actions
       @actions.each do |action|
         set_action action: action
       end
