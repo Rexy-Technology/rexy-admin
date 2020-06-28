@@ -58,10 +58,13 @@ module RexyAdmin
       # p 'joins: ' , index_join_array
       # p 'select: ' , index_select_string
       records = joins(index_join_array).select(index_select_string)
+      p 'records1: ' , records
+      records = @index_after_query.call(records, @params[:current_admin]) if @index_after_query.present?
+      p 'records2: ' , records
       records, total_count = paginate_and_arrange_records records
-      records = index_add_associations_fields_to_records(@index_associations, records)
-      records = @index_after_action.call(records, @params[:current_admin]) if @index_after_action.present?
-      result_if_success records, pagination.merge(total_count: total_count)
+      hash_records = index_add_associations_fields_to_records(@index_associations, records)
+      hash_records = @index_after_action.call(hash_records, @params[:current_admin]) if @index_after_action.present?
+      result_if_success hash_records, pagination.merge(total_count: total_count)
     end
 
     def check_if_associations_valid parent_model, associations
