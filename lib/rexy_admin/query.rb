@@ -57,7 +57,9 @@ module RexyAdmin
       # p '@index_associations: ' , @index_associations
       p 'joins: ' , index_join_array
       # p 'select: ' , index_select_string
-      records = joins(index_join_array).select(index_select_string)
+      records = joins(index_join_array)
+               .includes(index_join_array)
+               .select(index_select_string)
       records, total_count = paginate_and_arrange_records records
       records = index_add_associations_fields_to_records(@index_associations, records)
       records = @index_after_action.call(records, @params[:current_admin]) if @index_after_action.present?
@@ -68,10 +70,6 @@ module RexyAdmin
       associations.map.with_index do |association, index|
         raise "Associations must be a array of hashes." unless association.is_a?(Hash)
         raise "Model is required." unless association.key?(:model)
-        # p '1: ', association[:model].model_name.singular.to_sym
-        # p '2: ', belongs_to_or_has_one_relate_model_names(parent_model)
-        # p '3: ', association[:model].model_name.plural.to_sym
-        # p '4: ', has_many_model_names(parent_model)
         raise("#{association[:model].to_s} not having any relation with #{parent_model.to_s}.") unless
           (
             association[:model].model_name.singular.to_sym.in?(belongs_to_or_has_one_relate_model_names(parent_model)) || 
@@ -81,7 +79,8 @@ module RexyAdmin
         # To add "fields = []" key as default
         formatted_association = {
           model: association[:model],
-          fields: association[:fields].presence || []
+          fields: association[:fields].presence || [],
+          has_many: is_has_many_relation?(parent_model, association[:model])
         }
         formatted_association[:associations] = check_if_associations_valid(association[:model], association[:associations]) if association.key?(:associations)
         formatted_association
@@ -197,7 +196,6 @@ module RexyAdmin
                                   next unless association[:fields].present?
                                   model_name = association[:model].model_name.singular
                                   added_parents_encode_name = "#{parents_encode_name}#{model_name}__"
-                                  
                                   current_keys_string = to_current_keys_string(association, added_parents_encode_name, parents_encode_name)
                                   next(current_keys_string) unless association.key?(:associations)
                                   
@@ -248,7 +246,7 @@ module RexyAdmin
 
     def order_by_string
       order_by = ''
-      @index_fields.each do|v|
+      @index_fields.each do |v|
         if arrangement[:order_by] == v.to_s
           order_by = "#{table_name}.#{arrangement[:order_by]}" 
           break
@@ -275,10 +273,10 @@ module RexyAdmin
     end
 
     # Etc
-    def is_has_many_relation? parent_model, model
+    def is_has_many_relation? parent_model, child_model
       return false unless parent_model.present?
 
-      model_name = model.model_name.singular.to_sym
+      model_name = child_model.model_name.singular.to_sym
       belongs_to_or_has_one_relate_model_names = belongs_to_or_has_one_relate_model_names(parent_model)
       return !model_name.in?(belongs_to_or_has_one_relate_model_names)
     end
@@ -328,3 +326,4 @@ module RexyAdmin
 
   end
 end
+"#bd79f5"
