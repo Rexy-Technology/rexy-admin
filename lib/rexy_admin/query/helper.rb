@@ -5,6 +5,11 @@ module RexyAdmin
       model.model_name.singular.to_sym
     end
 
+    def get_model_name association
+      association[:has_many] ? association[:model].model_name.plural.to_sym
+                             : association[:model].model_name.singular.to_sym
+    end
+
     def belongs_to_or_has_one_relate_model_names model
       belongs_to_names = model.reflect_on_all_associations(:belongs_to).map(&:name)
       has_one_names = model.reflect_on_all_associations(:has_one).map(&:name)
@@ -65,6 +70,25 @@ module RexyAdmin
 
     def rexy_admin_active
       column_names.include?('active') ? where(active: true) : all
+    end
+
+
+    def serialize records, fields
+      return serialize_record(records, fields) unless records.is_a? Enumerable
+
+      records.map { |record| serialize_record(record, fields) } 
+    end
+
+    def serialize_record record, fields
+      serialized_record = {}
+      record_to_h(record).each do |key, value|
+        serialized_record[key.to_sym] = value if key.in? fields
+      end
+      serialized_record
+    end
+
+    def record_to_h record
+      record.attributes.transform_keys(&:to_sym)
     end
 
   end

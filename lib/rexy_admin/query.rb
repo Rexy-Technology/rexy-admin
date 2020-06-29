@@ -60,38 +60,52 @@ module RexyAdmin
     end
 
     def records_filtered_by_default
-      @index_associations = check_if_associations_valid self, @index_associations
+      @index_associations = check_if_associations_valid(self, @index_associations, false)
       # p '@index_associations: ' , @index_associations
-      # p 'joins: ' , index_join_array
-      # p 'select: ' , index_select_string
+      p 'joins: ' , index_join_array
+      p 'select: ' , index_select_string
       records = joins(index_join_array)
                .includes(index_join_array)
                .select(index_select_string)
+      records = @index_after_query.call(records, @params[:current_admin]) if @index_after_query.present?
       records, total_count = paginate_and_arrange_records records
-      records = index_add_associations_fields_to_records(@index_associations, records)
-      records = @index_after_action.call(records, @params[:current_admin]) if @index_after_action.present?
-      result_if_success records, pagination.merge(total_count: total_count)
+      hash_records = index_add_associations_fields_to_records(@index_associations, records)
+      hash_records = @index_after_action.call(hash_records, @params[:current_admin]) if @index_after_action.present?
+      result_if_success hash_records, pagination.merge(total_count: total_count)
     end
 
-    def check_if_associations_valid parent_model, associations
+    def check_if_associations_valid(parent_model, associations, in_has_many_branch)
       associations.map.with_index do |association, index|
-        raise "Associations must be a array of hashes." unless association.is_a?(Hash)
-        raise "Model is required." unless association.key?(:model)
-        raise("#{association[:model].to_s} not having any relation with #{parent_model.to_s}.") unless
-          (
-            association[:model].model_name.singular.to_sym.in?(belongs_to_or_has_one_relate_model_names(parent_model)) || 
-            association[:model].model_name.plural.to_sym.in?(has_many_model_names(parent_model))
-          )
-        (association[:fields].presence || []).each { |association_field| raise("Association fields not exists.") unless association_field.to_s.in? association[:model].column_names }
-        # To add "fields = []" key as default
-        formatted_association = {
-          model: association[:model],
-          fields: association[:fields].presence || [],
-          has_many: is_has_many_relation?(parent_model, association[:model])
-        }
-        formatted_association[:associations] = check_if_associations_valid(association[:model], association[:associations]) if association.key?(:associations)
-        formatted_association
+        check_if_association_valid(parent_model, association)
+        formatted_association(parent_model, associations, in_has_many_branch, association)
       end
+    end
+
+    def check_if_association_valid(parent_model, association)
+      raise "Associations must be a array of hashes." unless association.is_a?(Hash)
+      raise "Model is required." unless association.key?(:model)
+      raise("#{association[:model].to_s} not having any relation with #{parent_model.to_s}.") unless
+        (
+          association[:model].model_name.singular.to_sym.in?(belongs_to_or_has_one_relate_model_names(parent_model)) || 
+          association[:model].model_name.plural.to_sym.in?(has_many_model_names(parent_model))
+        )
+      (association[:fields].presence || []).each { |association_field| raise("Association fields not exists.") unless association_field.to_s.in? association[:model].column_names }
+    end
+
+    def formatted_association(parent_model, associations, in_has_many_branch, association)
+      has_many = is_has_many_relation?(parent_model, association[:model])
+      # Once a relation is has_many, not join, not select, not sort, not search it's field and it's predecessor's fields => only show.
+      # Once set it to true, it's predecessor will always receive parameter true
+      in_has_many_branch = has_many || in_has_many_branch
+      # Initialize data
+      formatted_association = {
+        model: association[:model],
+        fields: association[:fields].presence || [],
+        has_many: has_many,
+        in_has_many_branch: in_has_many_branch,
+      }
+      formatted_association[:associations] = check_if_associations_valid(association[:model], association[:associations], in_has_many_branch) if association.key?(:associations)
+      formatted_association
     end
 
     def result_if_success records, pagination

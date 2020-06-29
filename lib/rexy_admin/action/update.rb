@@ -2,7 +2,7 @@ module RexyAdmin
   module Action
     # Update 
     def rexy_admin_update(id, params = {})
-      raise "This action is not set in model #{model_name} yet." unless :update.in? @actions
+      raise "Action update is not set in model #{model_name} yet." unless :update.in? @actions
       params.merge!(id: id)
       return custom_update(params) if @update_params_checker.present?
 

@@ -7,7 +7,7 @@
 module RexyAdmin
   module Action
     def rexy_admin_show(id, params = {})
-      raise "This action is not set in model #{model_name} yet." unless :show.in? @actions
+      raise "Action show is not set in model #{model_name} yet." unless :show.in? @actions
       params.merge!(id: id)
       return custom_show(params) if @show_params_checker.present?
 

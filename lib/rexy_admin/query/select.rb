@@ -11,24 +11,25 @@ module RexyAdmin
       end
       primary_keys_string.compact.join(', ')
     end
-        
+
     def association_keys_string associations
       return '' unless associations.present?
       full_association_keys_string = to_association_keys_string('', associations)
-    
+      
       full_association_keys_string.present? ? ', ' + full_association_keys_string : ''
     end
-
+    
+    # If a relation is has_many, not select it's field and it's predecessor => not sort, search them; only show them.
     def to_association_keys_string parents_encode_name , associations
       association_keys_string = associations.map do |association|
-                                  next unless association[:fields].present?
+                                  next if association[:in_has_many_branch] || !association[:fields].present?
+                                  
                                   model_name = association[:model].model_name.singular
                                   added_parents_encode_name = "#{parents_encode_name}#{model_name}__"
                                   current_keys_string = to_current_keys_string(association, added_parents_encode_name, parents_encode_name)
                                   next(current_keys_string) unless association.key?(:associations)
-                                  
                                   child_keys_string = to_association_keys_string(added_parents_encode_name, association[:associations])
-                                  current_keys_string + child_keys_string.presence || ''
+                                  current_keys_string + (child_keys_string.presence || '')
                                 end
       association_keys_string&.compact&.join
     end
