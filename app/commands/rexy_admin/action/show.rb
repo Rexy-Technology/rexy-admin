@@ -6,7 +6,6 @@ module RexyAdmin
       prepend SimpleCommand
 
       def initialize(params = {})
-        p 'hehe1: ' , params
         @params = params
       end
 

@@ -62,8 +62,8 @@ module RexyAdmin
     def records_filtered_by_default
       @index_associations = check_if_associations_valid(self, @index_associations, false)
       # p '@index_associations: ' , @index_associations
-      p 'joins: ' , index_join_array
-      p 'select: ' , index_select_string
+      # p 'joins: ' , index_join_array
+      # p 'select: ' , index_select_string
       records = joins(index_join_array)
                .includes(index_join_array)
                .select(index_select_string)
@@ -94,7 +94,7 @@ module RexyAdmin
 
     def formatted_association(parent_model, associations, in_has_many_branch, association)
       has_many = is_has_many_relation?(parent_model, association[:model])
-      # Once a relation is has_many, not join, not select, not sort, not search it's field and it's predecessor's fields => only show.
+      # Once a relation is has_many, not select, not sort, not search it's field and it's predecessor's fields => only show.
       # Once set it to true, it's predecessor will always receive parameter true
       in_has_many_branch = has_many || in_has_many_branch
       # Initialize data

@@ -82,7 +82,7 @@ module RexyAdmin
     def serialize_record record, fields
       serialized_record = {}
       record_to_h(record).each do |key, value|
-        serialized_record[key.to_sym] = value if key.in? fields
+        serialized_record[key.to_sym] = value if key.in?(fields) || key.to_s.in?(fields)
       end
       serialized_record
     end
