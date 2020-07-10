@@ -61,9 +61,6 @@ module RexyAdmin
 
     def records_filtered_by_default
       @index_associations = check_if_associations_valid(self, @index_associations, false)
-      # p '@index_associations: ' , @index_associations
-      # p 'joins: ' , index_join_array
-      # p 'select: ' , index_select_string
       records = joins(index_join_array)
                .includes(index_join_array)
                .select(index_select_string)
@@ -101,6 +98,7 @@ module RexyAdmin
       formatted_association = {
         model: association[:model],
         fields: association[:fields].presence || [],
+        search_fields: association[:search_fields].presence || association[:fields].presence || [],
         has_many: has_many,
         in_has_many_branch: in_has_many_branch,
       }

@@ -82,7 +82,7 @@ module RexyAdmin
 
 
       search_fields = search_fields&.uniq&.presence || fields                                               
-      action.in?([:form]) && instance_variable_set("@form_search_fields", search_fields)
+      action.in?([:form, :index]) && instance_variable_set("@#{action}_search_fields", search_fields)
     end
 
     def filter_params params
