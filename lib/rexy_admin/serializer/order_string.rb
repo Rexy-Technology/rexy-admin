@@ -37,8 +37,10 @@ module RexyAdmin
         return false unless array_order_by.length >= 2
 
         # Example : "customer.product.name" => "products.name"
-        formatted_order_by_string = "#{array_order_by[-1]}.#{array_order_by[-2].pluralize}"
-
+        formatted_order_by_string = "#{array_order_by[-2].pluralize}.#{array_order_by[-1]}"
+        p 'jeje2: ', formatted_order_by_string
+        p 'jeje3: ', all_fields_array
+        p 'jeje4: ', formatted_order_by_string.in?(all_fields_array)
         formatted_order_by_string.in?(all_fields_array) ? formatted_order_by_string : nil
       end
 
