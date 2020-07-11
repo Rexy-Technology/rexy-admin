@@ -1,7 +1,7 @@
 module RexyAdmin
   module Query
     def index_search_fields_search_string
-      primary_search_fields_string(@index_fields) + association_search_fields_string(@index_associations)
+      primary_search_fields_string(@index_search_fields) + association_search_fields_string(@index_associations)
     end
 
     def primary_search_fields_string fields
@@ -31,19 +31,7 @@ module RexyAdmin
       association_search_fields_string&.compact&.join
     end
 
-    def index_search_fields_search_array
-      index_search_fields_search_string.split(', ').map do |v|
-        # Example: remove all " as " to get an associations array
-        if ' as '.in? v
-          index = v.index ' as '
-          next(v[0..index-1])
-        end
-        v
-      end
-    end
-
     def to_current_search_fields_string association, added_parents_encode_name, parents_encode_name
-      p 'jeje1: ' , association[:search_fields]
       current_search_fields_string = association[:search_fields].map do |association_field|
         unless EXCLUDE_KEYS_STRING.find_index(association_field)
           current_encode_name = "#{added_parents_encode_name}#{association_field}"
@@ -53,6 +41,17 @@ module RexyAdmin
       current_search_fields_string = current_search_fields_string&.compact&.join(', ')
       is_outest_hash = parents_encode_name == ''
       current_search_fields_string.present? ? (is_outest_hash ? current_search_fields_string :  ', ' + current_search_fields_string) : ''
+    end
+
+    def index_search_fields_search_array
+      index_search_fields_search_string.split(', ').map do |v|
+        # Example: remove all " as " to get an associations array
+        if ' as '.in? v
+          index = v.index ' as '
+          next(v[0..index-1])
+        end
+        v
+      end
     end
 
     def search_string
