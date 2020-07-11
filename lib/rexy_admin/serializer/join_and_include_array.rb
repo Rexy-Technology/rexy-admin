@@ -3,8 +3,8 @@ module RexyAdmin
     class JoinAndIncludeArray
       prepend SimpleCommand
   
-      def initialize(association, model)
-        @association = association
+      def initialize(schema, model)
+        @schema = schema
         @model = model
       end
   
@@ -13,7 +13,7 @@ module RexyAdmin
       end
 
       def join_and_include_array
-        to_join_and_include_array(model, associations[:associations])
+        to_join_and_include_array(model, schema[:associations])
       end
 
       def to_join_and_include_array(parent_model, associations)
@@ -26,7 +26,7 @@ module RexyAdmin
         end
       end
 
-      attr_accessor :association, :model
+      attr_accessor :schema, :model
     end
   end
 end

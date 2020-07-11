@@ -4,32 +4,31 @@ require 'rexy_admin/serializer/join_and_include_array'
 require 'rexy_admin/serializer/order_string'
 require 'rexy_admin/serializer/search_string'
 require 'rexy_admin/serializer/select_string'
-require 'rexy_admin/serializer/validate_association'
+require 'rexy_admin/serializer/validate_schema'
 
+EXCLUDE_SEARCH_STRING = %w[id created_at password].freeze
 EXCLUDE_KEYS_STRING = %w[password_digest created_at deleted_at].freeze
-
 module RexyAdmin
   module Serializer 
     class Serializer
       prepend SimpleCommand
   
-      def initialize(association, params, before_query_conditions, after_query_lambda)
-        @association = initial_association(association)
+      def initialize(schema, params, before_query_conditions, after_query_lambda)
+        @schema = initial_schema(schema)
         @params = params
         @before_query_conditions = before_query_conditions
         @after_query_lambda = after_query_lambda
       end
 
-      def initial_association(association)
-        p 'jeje5: ' , association
-        raise "Please provide a model" if association[:model].nil?
+      def initial_schema(schema)
+        raise "Please provide a model" if schema[:model].nil?
 
-        fields = (association[:fields]&.uniq&.presence || model.column_names ) - EXCLUDE_KEYS_STRING
-        search_fields = association[:search_fields]&.uniq&.presence || fields                                               
+        fields = schema[:fields]&.presence&.uniq&.map(&:to_sym) || []
+        search_fields = schema[:search_fields]&.presence&.uniq&.map(&:to_sym) || fields                                               
 
         {
-          model: association[:model],
-          associations: association[:associations].presence || [],
+          model: schema[:model],
+          associations: schema[:associations].presence || [],
           fields: fields,
           search_fields: search_fields,
           has_many: false,
@@ -38,33 +37,27 @@ module RexyAdmin
       end
   
       def call
-        validate_association
+        validate_schema
         query_records
         execute_after_query_lambda
         paginate_and_arrange_records
-        # format_hash_records
-        p 'jeje5: ' , records
+        format_hash_records
         {
-          status: 'OK', result: {
-            # records: hash_records,
-            records: records,
-            pagination: pagination,
-          }
+          records: hash_records,
+          pagination: pagination.merge(total_count: total_count),
         }
       end
   
       def model
-        @model ||= association[:model]
+        @model ||= schema[:model]
       end
   
-      def validate_association
-        @association = ValidateAssociation.call(association, model).result
+      def validate_schema
+        @schema = ValidateSchema.call(schema, model).result
       end
   
       def query_records
-        p 'jeje3: ' ,join_and_include_array
-        p 'jeje4: ' ,before_query_conditions
-        # p 'jeje5: ' ,select_string
+        # deprecated select_string since now get associations fields by includes, just '.supplier.id'
         @records = model.joins(join_and_include_array)
                         .includes(join_and_include_array)
                         .where(before_query_conditions)
@@ -72,7 +65,7 @@ module RexyAdmin
       end
 
       def join_and_include_array 
-        JoinAndIncludeArray.call(association, model).result
+        JoinAndIncludeArray.call(schema, model).result
       end
   
       def execute_after_query_lambda
@@ -80,28 +73,27 @@ module RexyAdmin
       end
   
       def paginate_and_arrange_records
-        p 'search_string: ' , search_string
+        # p 'search_string: ' , search_string
         # p 'order_string: ' , order_string
-        @records = records.where(search_string)
-        # @records = records.where(search_string).order(order_string)
-        # @records = records.where(search_string).order(order_string).page(pagination[:page]).per(pagination[:per_page])
-        @total_count = records.total_count
+        records_before_limit = records.where(search_string).order(order_string)
+        @total_count = records_before_limit.count
+        @records = records_before_limit.page(pagination[:page]).per(pagination[:per_page])
       end
 
       def select_string
-        SelectString.call(association, model, arrangement).result
+        SelectString.call(schema, model, arrangement).result
       end
 
       def search_string
-        SearchString.call(association, model, arrangement).result
+        SearchString.call(schema, model, arrangement).result
       end
 
       def order_string
-        OrderString.call(association, model, arrangement).result
+        OrderString.call(schema, model, arrangement).result
       end
 
       def format_hash_records
-        @hash_records = FormatHashRecords.call(association, model, records).result
+        @hash_records = FormatHashRecords.call(schema, model, records).result
       end
 
       def pagination
@@ -122,7 +114,7 @@ module RexyAdmin
         }
       end
   
-      attr_accessor :association, :params, :before_query_conditions, :after_query_lambda, :records
+      attr_accessor :schema, :params, :before_query_conditions, :after_query_lambda, :records, :hash_records, :total_count
     end
   end
 end

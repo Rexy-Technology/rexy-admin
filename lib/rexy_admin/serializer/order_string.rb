@@ -3,8 +3,8 @@ module RexyAdmin
     class OrderString
       prepend SimpleCommand
   
-      def initialize(association, model, arrangement)
-        @association = association
+      def initialize(schema, model, arrangement)
+        @schema = schema
         @model = model
         @arrangement = arrangement
       end
@@ -18,14 +18,19 @@ module RexyAdmin
       end
 
       def order_by_string
-        order_by_in_params_string.presence || default_order_by_string
+        order_by_string_in_params.presence || default_order_by_string
       end
 
-      def default_order_by_string
-        "#{model.table_name}.created_at"
+      def order_by_string_in_params
+        outest_model_order_by_string || association_order_by_string
       end
 
-      def order_by_in_params_string
+      def outest_model_order_by_string
+        index = schema[:fields].find_index(arrangement[:order_by].to_sym)
+        index.present? ? "#{model.table_name}.#{arrangement[:order_by]}" : nil
+      end
+
+      def association_order_by_string
         order_by = arrangement[:order_by].to_s
         array_order_by = order_by.split('.')
         # 'materials.code' is valid
@@ -38,7 +43,7 @@ module RexyAdmin
       end
 
       def all_fields_array
-        fields_array_of_associations(associations)
+        fields_array_of_associations(schema[:associations])
       end
       
       def fields_array_of_associations(associations)
@@ -48,7 +53,7 @@ module RexyAdmin
 
           child_fields_string = fields_array_of_associations(association[:associations]).presence || []
           current_fields_string + child_fields_string
-        end&.compact&.join
+        end&.compact.flatten
       end
 
       def fields_array_of_association(association)
@@ -59,7 +64,11 @@ module RexyAdmin
         end
       end
 
-    attr_accessor :association, :model, :arrangement
+      def default_order_by_string
+        "#{model.table_name}.created_at"
+      end
+
+    attr_accessor :schema, :model, :arrangement
     end
   end
 end

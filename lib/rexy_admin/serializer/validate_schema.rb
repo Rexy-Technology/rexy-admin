@@ -2,19 +2,19 @@ require 'rexy_admin/serializer/helper'
 
 module RexyAdmin
   module Serializer 
-    class ValidateAssociation
+    class ValidateSchema
       prepend SimpleCommand
   
-      def initialize(association, model)
-        @association = association
+      def initialize(schema, model)
+        @schema = schema
         @model = model
       end
   
       def call
         # no need to validate associations of the outest model
-        associations[:associations] = validate_associations(model, associations[:associations], false)
+        schema[:associations] = validate_associations(model, schema[:associations], false)
         # init some data for the outest model
-        associations
+        schema
       end
   
       def validate_associations(parent_model, associations, in_has_many_branch)
@@ -40,11 +40,14 @@ module RexyAdmin
         # Once a relation is has_many, not select, not sort, not search it's field and it's predecessor's fields => only show.
         # Once set it to true, it's predecessor will always receive parameter true
         in_has_many_branch = has_many || in_has_many_branch
+        # Fields
+        fields = association[:fields].presence&.uniq&.map(&:to_sym) || []
+        search_fields = association[:search_fields].presence&.uniq&.map(&:to_sym) || fields
         # Initialize data
         formatted_association = {
           model: association[:model],
-          fields: association[:fields].presence || [],
-          search_fields: association[:search_fields].presence || association[:fields].presence || [],
+          fields: fields,
+          search_fields: search_fields,
           has_many: has_many,
           in_has_many_branch: in_has_many_branch,
         }
@@ -52,7 +55,7 @@ module RexyAdmin
         formatted_association
       end
   
-      attr_accessor :association, :model
+      attr_accessor :schema, :model
     end
   end
 end
