@@ -3,7 +3,7 @@ module RexyAdmin
     def rexy_admin_delete(id, params = {})
       raise "Action delete is not set in model #{model_name} yet." unless :delete.in? @actions
       # Create body param "ids" if not exist in JSON body
-      params[:ids] = [] if params[:ids].nil?
+      params[:ids] = [] unless params[:ids].present?
       # Push path variable "id" to ids
       params[:ids] << id
       # Filter uniq

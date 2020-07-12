@@ -3,7 +3,7 @@ module RexyAdmin
     def rexy_admin_get_form_data params = {}
       raise "form_data is not set in model #{model_name} yet." unless @setted_form_data.present?
 
-      return {status: 'OK', result: @get_form_data_command.call(params).result} if @get_form_data_params_checker.nil?
+      return {status: 'OK', result: @get_form_data_command.call(params).result} unless @get_form_data_params_checker.present?
 
       params_checker_cmd = @get_form_data_params_checker.call(params: params, context: @get_form_data_context.merge(current_admin: params["current_admin"]))
       return {status: 'FAIL', result: params_checker_cmd.errors} if params_checker_cmd.failure?

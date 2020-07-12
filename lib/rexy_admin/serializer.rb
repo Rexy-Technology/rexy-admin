@@ -1,27 +1,46 @@
 require 'rexy_admin/serializer/format_hash_records'
+require 'rexy_admin/serializer/format_hash_record'
 require 'rexy_admin/serializer/helper'
 require 'rexy_admin/serializer/join_and_include_array'
 require 'rexy_admin/serializer/order_string'
 require 'rexy_admin/serializer/search_string'
 require 'rexy_admin/serializer/select_string'
 require 'rexy_admin/serializer/validate_schema'
+require 'rexy_admin/serializer/my_error'
 
 EXCLUDE_SEARCH_STRING = %w[id created_at password].freeze
 EXCLUDE_KEYS_STRING = %w[password_digest created_at deleted_at].freeze
+EXCLUDE_QUERY_PARAMS = %i[page per_page order_by order]
+
 module RexyAdmin
   module Serializer 
     class Serializer
       prepend SimpleCommand
   
-      def initialize(schema, params, before_query_conditions, after_query_lambda)
+      def initialize(
+        schema: {},
+        params: {},
+        before_query_conditions: nil,
+        after_query_lambda: nil,
+        many: false,
+        params_checker: nil,
+        context: nil
+      )
+
         @schema = initial_schema(schema)
         @params = params
+        @query_params = get_query_params
+        @query_params_conditions = query_params_conditions
         @before_query_conditions = before_query_conditions
         @after_query_lambda = after_query_lambda
+        @many = many
+
+        @params_checker = params_checker
+        @context = context
       end
 
       def initial_schema(schema)
-        raise "Please provide a model" if schema[:model].nil?
+        raise "Please provide a model" unless schema[:model].present?
 
         fields = schema[:fields]&.presence&.uniq&.map(&:to_sym) || []
         search_fields = schema[:search_fields]&.presence&.uniq&.map(&:to_sym) || fields                                               
@@ -35,16 +54,34 @@ module RexyAdmin
           in_has_many_branch: false
         }
       end
-  
+
       def call
+        many ? hash_records : hash_record
+      end
+
+      def hash_records
         validate_schema
+        return nil unless params_valid
+
         query_records
         execute_after_query_lambda
         paginate_and_arrange_records
-        format_hash_records
         {
-          records: hash_records,
+          records: formated_hash_records,
           pagination: pagination.merge(total_count: total_count),
+        }
+      end
+
+      def hash_record
+        validate_schema
+        raise 'Please provide a before_query_conditions argument' unless before_query_conditions.present?
+
+        query_record
+        return nil unless record_exist
+
+        execute_after_query_lambda
+        {
+          record: formated_hash_record
         }
       end
   
@@ -55,13 +92,37 @@ module RexyAdmin
       def validate_schema
         @schema = ValidateSchema.call(schema, model).result
       end
-  
+
+      def params_valid
+        return true unless params_checker.present?
+
+        cmd = params_checker.call(params: query_params, context: context.merge(current_admin: query_params[:current_admin]))
+        if cmd.failure?
+          errors.add(:errors, cmd.errors[:errors][0])
+          return nil
+        end
+
+        @params = cmd.result
+        true
+      end
+
       def query_records
         # deprecated select_string since now get associations fields by includes, just '.supplier.id'
         @records = model.joins(join_and_include_array)
                         .includes(join_and_include_array)
+                        .where(query_params_conditions)
                         .where(before_query_conditions)
                         # .select(select_string)
+      end
+  
+      def query_record
+        @record = model.joins(join_and_include_array)
+                       .includes(join_and_include_array)
+                       .where(before_query_conditions)
+                       .first
+
+        @record_exist = record.present?
+        errors.add(:errors, "#{model.model_name.human} not exist.") unless record_exist
       end
 
       def join_and_include_array 
@@ -69,12 +130,16 @@ module RexyAdmin
       end
   
       def execute_after_query_lambda
-        @records = @after_query_lambda.call(records, @params[:current_admin]) if @after_query_lambda.present?
+        if many
+          @records = @after_query_lambda.call(records, @params[:current_admin]) if @after_query_lambda.present?
+        else
+          @record = @after_query_lambda.call(record, @params[:current_admin]) if @after_query_lambda.present?
+        end
       end
   
       def paginate_and_arrange_records
-        p 'search_string: ' , search_string
-        p 'order_string: ' , order_string
+        # p 'search_string: ' , search_string
+        # p 'order_string: ' , order_string
         records_before_limit = records.where(search_string).order(order_string)
         @total_count = records_before_limit.count
         @records = records_before_limit.page(pagination[:page]).per(pagination[:per_page])
@@ -92,8 +157,14 @@ module RexyAdmin
         OrderString.call(schema, model, arrangement).result
       end
 
-      def format_hash_records
-        @hash_records = FormatHashRecords.call(schema, model, records).result
+      def formated_hash_records
+        FormatHashRecords.call(schema, model, records).result
+      end
+
+      def formated_hash_record
+        return {} unless record.present?
+        
+        FormatHashRecord.call(schema, model, record).result
       end
 
       def pagination
@@ -104,7 +175,7 @@ module RexyAdmin
       end
   
       def arrangement
-        order_by = @params[:order_by]&.strip&.downcase
+        order_by = @params[:order_by]&.strip&.downcase&.presence || ''
         order = @params[:order]&.upcase == 'ASCEND' ? 'ASC' : 'DESC'
         # order_by = column_names.include?(order_by_param) ? order_by_param : 'created_at'
         {
@@ -112,9 +183,26 @@ module RexyAdmin
           order_by: order_by,
           keyword: @params[:keyword]
         }
+        
+      end
+
+      def get_query_params
+        params.reject { |key, value| key.to_sym.in?(EXCLUDE_QUERY_PARAMS) }
       end
   
-      attr_accessor :schema, :params, :before_query_conditions, :after_query_lambda, :records, :hash_records, :total_count
+      attr_accessor :schema,
+                    :params,
+                    :query_params,
+                    :query_params_conditions,
+                    :before_query_conditions,
+                    :after_query_lambda,
+                    :many,
+                    :records,
+                    :record,
+                    :total_count,
+                    :params_checker,
+                    :context,
+                    :record_exist
     end
   end
 end

@@ -18,10 +18,14 @@ module RexyAdmin
       def hash_records
         # Convert records to hash and and association fields
         records.map do |record|
-          rejected_associations_fields_record = Helper.serialize(record, schema[:fields])
-          associations_fields = associations_fields(record, record, record.attributes.transform_keys(&:to_sym), schema[:associations])
-          rejected_associations_fields_record.merge(associations_fields)
+          hash_record(record)
         end
+      end
+
+      def hash_record(record)
+        hash_record = Helper.serialize(record, schema[:fields])
+        associations_fields = associations_fields(record, record, record.attributes.transform_keys(&:to_sym), schema[:associations])
+        hash_record.merge(associations_fields)
       end
 
       def associations_fields(record, parent_record, parent_hash, associations)
