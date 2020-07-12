@@ -20,23 +20,24 @@ module RexyAdmin
       def initialize(
         schema: {},
         params: {},
-        before_query_conditions: nil,
-        after_query_lambda: nil,
-        many: false,
+        context: {},
         params_checker: nil,
-        context: nil
+        modify_query: nil,
+        many: false,
+        paginate: false
       )
-
         @schema = initial_schema(schema)
         @params = params
-        @query_params = get_query_params
-        @query_params_conditions = query_params_conditions
-        @before_query_conditions = before_query_conditions
-        @after_query_lambda = after_query_lambda
-        @many = many
-
-        @params_checker = params_checker
         @context = context
+
+        raise "Please provide a params_checker when using modify_query" if modify_query.present? && !params_checker.present?
+        
+        @params_checker = params_checker
+        @modify_query = modify_query
+        @query_params = get_query_params
+
+        @many = many
+        @paginate = paginate
       end
 
       def initial_schema(schema)
@@ -64,22 +65,23 @@ module RexyAdmin
         return nil unless params_valid
 
         query_records
-        execute_after_query_lambda
         paginate_and_arrange_records
-        {
-          records: formated_hash_records,
-          pagination: pagination.merge(total_count: total_count),
+
+        result = {
+          records: formated_hash_records
         }
+        
+        result[:pagination] = pagination.merge(total_count: total_count) if paginate
+        result
       end
 
       def hash_record
         validate_schema
-        raise 'Please provide a before_query_conditions argument' unless before_query_conditions.present?
+        return nil unless params_valid
 
         query_record
         return nil unless record_exist
 
-        execute_after_query_lambda
         {
           record: formated_hash_record
         }
@@ -101,8 +103,8 @@ module RexyAdmin
           errors.add(:errors, cmd.errors[:errors][0])
           return nil
         end
-
-        @params = cmd.result
+        
+        @params.merge!(cmd.result)
         true
       end
 
@@ -110,31 +112,23 @@ module RexyAdmin
         # deprecated select_string since now get associations fields by includes, just '.supplier.id'
         @records = model.joins(join_and_include_array)
                         .includes(join_and_include_array)
-                        .where(query_params_conditions)
-                        .where(before_query_conditions)
-                        # .select(select_string)
+        @records = modify_query.call(records, params) if modify_query.present?
       end
   
       def query_record
-        @record = model.joins(join_and_include_array)
+        records = model.joins(join_and_include_array)
                        .includes(join_and_include_array)
-                       .where(before_query_conditions)
-                       .first
+        @record = modify_query.present? ? modify_query.call(records, params).first : records.first  
 
         @record_exist = record.present?
-        errors.add(:errors, "#{model.model_name.human} not exist.") unless record_exist
+        errors.add(:errors, {
+            "message": "#{model.model_name.human} not exist.",
+            "details": {}
+        }) unless record_exist
       end
 
       def join_and_include_array 
         JoinAndIncludeArray.call(schema, model).result
-      end
-  
-      def execute_after_query_lambda
-        if many
-          @records = @after_query_lambda.call(records, @params[:current_admin]) if @after_query_lambda.present?
-        else
-          @record = @after_query_lambda.call(record, @params[:current_admin]) if @after_query_lambda.present?
-        end
       end
   
       def paginate_and_arrange_records
@@ -142,7 +136,7 @@ module RexyAdmin
         # p 'order_string: ' , order_string
         records_before_limit = records.where(search_string).order(order_string)
         @total_count = records_before_limit.count
-        @records = records_before_limit.page(pagination[:page]).per(pagination[:per_page])
+        @records = records_before_limit.page(pagination[:page]).per(pagination[:per_page]) if paginate
       end
 
       def select_string
@@ -189,14 +183,13 @@ module RexyAdmin
       def get_query_params
         params.reject { |key, value| key.to_sym.in?(EXCLUDE_QUERY_PARAMS) }
       end
-  
+
       attr_accessor :schema,
                     :params,
                     :query_params,
-                    :query_params_conditions,
-                    :before_query_conditions,
-                    :after_query_lambda,
+                    :modify_query,
                     :many,
+                    :paginate,
                     :records,
                     :record,
                     :total_count,
