@@ -9,7 +9,8 @@ module RexyAdmin
       # Filter uniq
       params[:ids] = params[:ids].uniq
       # If path variable "id" not exist, to_i will return 0
-      params[:ids] = params[:ids].reject {|id| id == 0 }
+      # params[:ids] = params[:ids].reject {|id| id == 0 }
+      params[:ids] = params[:ids].without 0
 
       return custom_delete(params) if @delete_params_checker.present?
 

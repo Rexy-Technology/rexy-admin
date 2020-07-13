@@ -10,7 +10,7 @@ require 'rexy_admin/serializer/my_error'
 
 EXCLUDE_SEARCH_STRING = %w[id created_at password].freeze
 EXCLUDE_KEYS_STRING = %w[password_digest created_at deleted_at].freeze
-EXCLUDE_QUERY_PARAMS = %i[page per_page order_by order]
+EXCLUDE_QUERY_PARAMS = %w[page per_page order_by order].freeze
 
 module RexyAdmin
   module Serializer 
@@ -181,7 +181,8 @@ module RexyAdmin
       end
 
       def get_query_params
-        params.reject { |key, value| key.to_sym.in?(EXCLUDE_QUERY_PARAMS) }
+        # params.reject { |key, value| key.in?(EXCLUDE_QUERY_PARAMS) }
+        params.without EXCLUDE_QUERY_PARAMS
       end
 
       attr_accessor :schema,

@@ -22,30 +22,30 @@ require 'rexy_admin/action/get_form_data'
 module RexyAdmin
   module Action
     # Custom
-    def custom_action params, params_checker, context, command , default_action
-      return custom_action_with_params_checker(params, params_checker, context, command , default_action) if params_checker.present?
-      custom_action_without_params_checker(params, command , default_action)
-    end
+    # def custom_action params, params_checker, context, command , default_action
+    #   return custom_action_with_params_checker(params, params_checker, context, command , default_action) if params_checker.present?
+    #   custom_action_without_params_checker(params, command , default_action)
+    # end
 
-    def custom_action_with_params_checker params, params_checker, context, command , default_action
-      params_checker_cmd = params_checker.call(params: params, context: context.merge(current_admin: params["current_admin"]))
-      return {status: 'FAIL', result: params_checker_cmd.errors} if params_checker_cmd.failure?
+    # def custom_action_with_params_checker params, params_checker, context, command , default_action
+    #   params_checker_cmd = params_checker.call(params: params, context: context.merge(current_admin: params["current_admin"]))
+    #   return {status: 'FAIL', result: params_checker_cmd.errors} if params_checker_cmd.failure?
       
-      return custom_command(command, params_checker_cmd.result) if command.present?
+    #   return custom_command(command, params_checker_cmd.result) if command.present?
         
-      send default_action, params_checker_cmd.result
-    end
+    #   send default_action, params_checker_cmd.result
+    # end
 
-    def custom_action_without_params_checker params, command , default_action
-      return custom_command(command, params) if command.present?
+    # def custom_action_without_params_checker params, command , default_action
+    #   return custom_command(command, params) if command.present?
           
-      send default_action, params
-    end
+    #   send default_action, params
+    # end
 
-    def custom_command command, params
-      cmd = command.call(params)
-      {status: 'OK', result: cmd.result}
-    end
+    # def custom_command command, params
+    #   cmd = command.call(params)
+    #   {status: 'OK', result: cmd.result}
+    # end
 
     # Set action
     def use_actions only: [], except: []
@@ -63,26 +63,41 @@ module RexyAdmin
       end
     end
 
-    def set_action(action:, params_checker: nil, context: {}, command: nil, custom_query: where(''),
-                   fields: [], search_fields: [], associations: [], exclude_fields: [], after_query: nil, after_action: nil)
+    def set_action(action:, params_checker: nil, context: {},
+                   command: nil, custom_query: where(''), fields: [],
+                    search_fields: [], schema: [], exclude_fields: [],
+                     modify_query: nil, after_action: nil, paginate: false)
       raise ("action only accept these action types: #{@actions}") unless action.in? ACTIONS
+      set_mutation_actions(custom_query, context, params_checker, command)
+      set_query_actions(schema, context, params_checker, modify_query, paginate)
+    end
 
+    def set_mutation_actions(custom_query, context, params_checker, command)
       instance_variable_set("@#{action}_custom_query", custom_query)
       instance_variable_set("@#{action}_context", context)
+      instance_variable_set("@#{action}_params_checker", params_checker)
       instance_variable_set("@#{action}_command", command)
+    end
+
+    def set_query_actions(schema, context, 
+                          fields, search_fields, exclude_fields,
+                          params_checker, modify_query, paginate)
+
+      instance_variable_set("@#{action}_context", context)
       instance_variable_set("@#{action}_params_checker", params_checker)
 
-      action.in?([:index]) && instance_variable_set("@#{action}_after_query", after_query)
-      
       fields = (fields&.uniq&.presence || column_names - exclude_fields) - EXCLUDE_KEYS_STRING
-      action.in?([:show, :index, :form]) && instance_variable_set("@#{action}_associations", associations) && 
-                                              instance_variable_set("@#{action}_exclude_fields", exclude_fields) &&
-                                              instance_variable_set("@#{action}_fields", fields) && 
-                                              instance_variable_set("@#{action}_after_action", after_action)
+      search_fields = search_fields&.uniq&.presence || fields           
+      schema = {
+        model: self,
+        fields: fields,
+        search_fields: search_fields,
+      }                                    
 
-
-      search_fields = search_fields&.uniq&.presence || fields                                               
-      action.in?([:form, :index]) && instance_variable_set("@#{action}_search_fields", search_fields)
+      action.in?([:show, :index, :form]) && instance_variable_set("@#{action}_schema", schema) && 
+                                            instance_variable_set("@#{action}_modify_query", modify_query) && 
+                                            instance_variable_set("@#{action}_after_action", after_action) &&
+                                            instance_variable_set("@#{action}_paginate", paginate)
     end
 
     def filter_params params

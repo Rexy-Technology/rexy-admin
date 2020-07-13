@@ -8,40 +8,65 @@ module RexyAdmin
   module Action
     def rexy_admin_show(id, params = {})
       raise "Action show is not set in model #{model_name} yet." unless :show.in? @actions
+
       params.merge!(id: id)
-      return custom_show(params) if @show_params_checker.present?
-
-      default_show(params)
-    end
-
-    def custom_show params 
-      custom_action(params, @show_params_checker, @show_context, @show_command, 'default_show')
-    end
-
-    def default_show(params)
-      record = @show_custom_query.joins(show_join_array).select(show_select_string).find_by_id(params[:id])
-      return {status: 'FAIL', result: "#{model_name.human} not exist."} unless record.present?
-      @show_associations = check_if_associations_valid self, @show_associations
-      record = show_add_associations_fields_to_records(@show_associations, record)
+      return {status: 'FAIL', result: "#{model_name.human} not exist."} unless exists?(id: params[:id])
       
-      record  = @show_after_action.call(record, params[:current_admin]) if record.present? && @show_after_action.present? 
-      {status: 'OK', result: record}
+      cmd = show_cmd(params)
+      return {status: 'FAIL', result: errors.add(:errors, cmd.errors)} if cmd.failure?
+
+      {status: 'OK', result: cmd.result}
     end
 
-    # Add associations fields
-    def show_add_associations_fields_to_records associations, record
-      hash_record = record.attributes.transform_keys(&:to_sym)
-      add_associations_fields_to_record_recursively('', hash_record, associations)
+    def show_cmd(params)
+      RexyAdmin::Serializer::Serializer.call(
+        schema: @show_schema,
+        context: @show_context,
+        params_checker: @show_params_checker,
+        modify_query: @show_modify_query,
+        many: false,
+        paginate: @show_paginate,
+        params: params,
+       )
     end
 
-    # Joins
-    def show_join_array
-      to_join_array self, @show_associations
-    end
+    # def rexy_admin_show(id, params = {})
+    #   raise "Action show is not set in model #{model_name} yet." unless :show.in? @actions
+    #   params.merge!(id: id)
+    #   return custom_show(params) if @show_params_checker.present?
 
-    # Select
-    def show_select_string
-      primary_keys_string(@show_fields) + association_keys_string(@show_associations)
-    end
+    #   default_show(params)
+    # end
+
+    # def custom_show params 
+    #   custom_action(params, @show_params_checker, @show_context, @show_command, 'default_show')
+    # end
+
+    # def default_show(params)
+    #   record = @show_custom_query.joins(show_join_array).select(show_select_string).find_by_id(params[:id])
+    #   return {status: 'FAIL', result: "#{model_name.human} not exist."} unless record.present?
+    #   @show_associations = check_if_associations_valid self, @show_associations
+    #   record = show_add_associations_fields_to_records(@show_associations, record)
+      
+    #   record  = @show_after_action.call(record, params[:current_admin]) if record.present? && @show_after_action.present? 
+    #   {status: 'OK', result: record}
+    # end
+
+    # # Add associations fields
+    # def show_add_associations_fields_to_records associations, record
+    #   hash_record = record.attributes.transform_keys(&:to_sym)
+    #   add_associations_fields_to_record_recursively('', hash_record, associations)
+    # end
+
+    # # Joins
+    # def show_join_array
+    #   to_join_array self, @show_associations
+    # end
+
+    # # Select
+    # def show_select_string
+    #   primary_keys_string(@show_fields) + association_keys_string(@show_associations)
+    # end
+    
   end
 end
