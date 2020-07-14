@@ -22,18 +22,16 @@ module RexyAdmin
         params: {},
         context: {},
         params_checker: nil,
-        modify_query: nil,
+        after_query: nil,
         many: false,
         paginate: false
       )
         @schema = initial_schema(schema)
         @params = params
         @context = context
-
-        raise "Please provide a params_checker when using modify_query" if modify_query.present? && !params_checker.present?
-        
+        # raise "Please provide a params_checker when using after_query" if after_query.present? && !params_checker.present?
         @params_checker = params_checker
-        @modify_query = modify_query
+        @after_query = after_query
         @query_params = get_query_params
 
         @many = many
@@ -112,15 +110,16 @@ module RexyAdmin
         # deprecated select_string since now get associations fields by includes, just '.supplier.id'
         @records = model.joins(join_and_include_array)
                         .includes(join_and_include_array)
-        @records = modify_query.call(records, params) if modify_query.present?
+        @records = after_query.call(records, params) if after_query.present?
       end
   
       def query_record
         records = model.joins(join_and_include_array)
                        .includes(join_and_include_array)
-        @record = modify_query.present? ? modify_query.call(records, params).first : records.first  
+        @record = after_query.present? ? after_query.call(records, params).first : records.first  
 
         @record_exist = record.present?
+
         errors.add(:errors, {
             "message": "#{model.model_name.human} not exist.",
             "details": {}
@@ -181,14 +180,13 @@ module RexyAdmin
       end
 
       def get_query_params
-        # params.reject { |key, value| key.in?(EXCLUDE_QUERY_PARAMS) }
-        params.without EXCLUDE_QUERY_PARAMS
+        params.reject { |key, value| key.in?(EXCLUDE_QUERY_PARAMS) }
       end
 
       attr_accessor :schema,
                     :params,
                     :query_params,
-                    :modify_query,
+                    :after_query,
                     :many,
                     :paginate,
                     :records,
