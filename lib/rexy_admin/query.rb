@@ -55,12 +55,10 @@ module RexyAdmin
     def records_filtered_by_default
       @index_associations = check_if_associations_valid self, @index_associations
       # p '@index_associations: ' , @index_associations
-      # p 'joins: ' , index_join_array
-      # p 'select: ' , index_select_string
+      p 'joins: ' , index_join_array
+      p 'select: ' , index_select_string
       records = joins(index_join_array).select(index_select_string)
-      p 'records1: ' , records
       records = @index_after_query.call(records, @params[:current_admin]) if @index_after_query.present?
-      p 'records2: ' , records
       records, total_count = paginate_and_arrange_records records
       hash_records = index_add_associations_fields_to_records(@index_associations, records)
       hash_records = @index_after_action.call(hash_records, @params[:current_admin]) if @index_after_action.present?
@@ -200,7 +198,7 @@ module RexyAdmin
                                   child_keys_string = to_association_keys_string(added_parents_encode_name, association[:associations])
                                   current_keys_string + child_keys_string.presence || ''
                                 end
-      association_keys_string&.compact&.join
+      association_keys_string&.compact&.join(', ')
     end
     
     def to_current_keys_string association, added_parents_encode_name, parents_encode_name

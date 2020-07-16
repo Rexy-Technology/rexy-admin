@@ -165,6 +165,11 @@ class RexyAdminController < ActionController::Base
   end
 
   def model
+    a = path_request.split('/')
+    .reject { |e| e.match?(/^\d+$|edit|new|form/) || e.blank? }
+    .last
+    .classify
+    p 'jejea: ' , a
     @model ||= path_request.split('/')
                            .reject { |e| e.match?(/^\d+$|edit|new|form/) || e.blank? }
                            .last
