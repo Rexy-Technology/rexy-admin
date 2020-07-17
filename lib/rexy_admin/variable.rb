@@ -11,7 +11,7 @@
 # rubocop:disable Style/Next
 # rubocop:disable BlockNesting
 
-ACTIONS = %i[create update delete show toggle index form]
+ACTIONS = %i[create update delete show toggle index]
 
 module RexyAdmin
   module Variable

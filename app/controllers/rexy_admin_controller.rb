@@ -53,7 +53,7 @@ class RexyAdminController < ActionController::Base
     paths = path.split('/')
     return show if paths.last == 'edit'
     return new if paths.last == 'new'
-    return form if paths.last == 'form'
+    return expand_query if paths[-2] == 'expand-query'
     # result = if objects.length > 1
     #            source_object = objects[-2]
     #            source_id = path.split('/')[-2].to_i
@@ -65,118 +65,89 @@ class RexyAdminController < ActionController::Base
     result = model.rexy_admin_query((params.merge(current_admin: current_admin).permit!))
     return render json: result[:result] if result[:status] == 'OK'
 
-    render json: {
-      "errors": result[:result].is_a?(String) ? {
-        "message": result[:result],
-        "details": {}
-      } : result[:result][:errors][0]
-    }, status: 422
-    
+    render json: errors(result), status: 422
   end
 
   def show
     result = model.rexy_admin_show(record_id, (params.merge(current_admin: current_admin).permit!))
     return render json: result[:result] if result[:status] == 'OK'
 
-    render json: {
-      "errors": result[:result].is_a?(String) ? {
-        "message": result[:result],
-        "details": {}
-      } : result[:result][:errors][0]
-    }, status: 422
+    render json: errors(result), status: 422
   end
 
   def new
     result = model.rexy_admin_get_form_data((params.merge(current_admin: current_admin).permit!))
     return render json: result[:result] if result[:status] == 'OK'
 
-    render json: {
-      "errors": result[:result].is_a?(String) ? {
-        "message": result[:result],
-        "details": {}
-      } : result[:result][:errors][0]
-    }, status: 422
-  end
-
-  def form
-    result = model.rexy_admin_form(params.merge(current_admin: current_admin).permit!)
-    return render json: result[:result] if result[:status] == 'OK'
-
-    render json: {
-      "errors": result[:result].is_a?(String) ? {
-        "message": result[:result],
-        "details": {}
-      } : result[:result][:errors][0]
-    }, status: 422
+    render json: errors(result), status: 422
   end
 
   def toggle_active
     result = model.rexy_admin_toggle(record_id, (params.merge(current_admin: current_admin).permit!))
     return render json: result[:result] if result[:status] == 'OK'
 
-    render json: {
-      "errors": result[:result].is_a?(String) ? {
-        "message": result[:result],
-        "details": {}
-      } : result[:result][:errors][0]
-    }, status: 422
+    render json: errors(result), status: 422
   end
 
   def create
     result = model.rexy_admin_create(params.merge(current_admin: current_admin).permit!)
     return render json: result[:result] if result[:status] == 'OK'
 
-    render json: {
-      "errors": result[:result].is_a?(String) ? {
-        "message": result[:result],
-        "details": {}
-      } : result[:result][:errors][0]
-    }, status: 422
+    render json: errors(result), status: 422
   end
 
   def delete
     result = model.rexy_admin_delete(record_id, (params.merge(current_admin: current_admin).permit!))
     return render json: result[:result] if result[:status] == 'OK'
 
-    render json: {
-      "errors": result[:result].is_a?(String) ? {
-        "message": result[:result],
-        "details": {}
-      } : result[:result][:errors][0]
-    }, status: 422
+    render json: errors(result), status: 422
   end
 
   def update
     result = model.rexy_admin_update(record_id, (params.merge(current_admin: current_admin).permit!))
     return render json: result[:result] if result[:status] == 'OK'
 
-    render json: {
+    render json: errors(result), status: 422
+  end
+
+  def expand_query
+    result = model.rexy_admin_expand_query(params.merge(current_admin: current_admin, path_request: path_request).permit!)
+    return render json: result[:result] if result[:status] == 'OK'
+
+    render json: errors(result), status: 422
+  end
+
+  
+  private
+
+  def errors(result)
+    {
       "errors": result[:result].is_a?(String) ? {
         "message": result[:result],
         "details": {}
       } : result[:result][:errors][0]
-    }, status: 422
+    }
   end
-
-  private
-
+  
   def path_request
     @path_request = request.path
   end
 
   def model
-    @model ||= path_request.split('/')
-                           .reject { |e| e.match?(/^\d+$|edit|new|form/) || e.blank? }
-                           .last
-                           .classify
-                           .constantize
+    # @model ||= path_request.split('/')
+    #                        .reject { |e| e.match?(/^\d+$|edit|new/) || e.blank? }
+    #                        .last
+    #                        .classify
+    #                        .constantize
+
+    @model ||= path_request.split('/')[2].classify&.constantize
   end
 
   def record_id
     @record_id ||= path_request.split('/')\
-                    .reject { |e| e.match?(/^edit|new|form/) || e.blank? }\
-                    .last\
-                    .to_i
+                               .reject { |e| e.match?(/^edit|new/) || e.blank? }\
+                               .last\
+                               .to_i
   end
 
 end 

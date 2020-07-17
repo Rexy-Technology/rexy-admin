@@ -24,7 +24,7 @@ module RexyAdmin
       records = @index_after_action.call(records, params[:current_admin]) if @index_after_action.present?
       {status: 'OK', result: {
         records: records,
-        pagination: pagination.merge(total_count: records.count) 
+        pagination: pagination
       }}
     end
 
