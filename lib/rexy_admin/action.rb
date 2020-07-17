@@ -102,7 +102,7 @@ module RexyAdmin
                           exclude_fields: [],
                           after_query: nil,
                           after_action: nil,
-                          paginate: false)
+                          paginate: true)
       fields = (fields&.uniq&.presence || column_names.map(&:to_sym) - exclude_fields) - EXCLUDE_KEYS_STRING
       search_fields = search_fields&.uniq&.presence || fields           
 
