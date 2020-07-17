@@ -92,7 +92,6 @@ module RexyAdmin
     def init_expand_queries
       @expand_queries = []
     end
-
   end
 end
 
