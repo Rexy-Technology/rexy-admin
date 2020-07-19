@@ -12,6 +12,11 @@ class RexyAdminContrains
     #                .last&
     #                .classify&
     #                .constantize
+    # p '1: ' , request.path
+    # p '2: ' , request.path.split('/')
+    # p '3: ' , request.path.split('/')[2]
+    # p '4: ' , request.path.split('/')[2].classify
+    # p '5: ' , request.path.split('/')[2].classify&.constantize
     model = request.path.split('/')[2].classify&.constantize
     model&.included_modules&.include?(RexyAdmin)
   rescue => e

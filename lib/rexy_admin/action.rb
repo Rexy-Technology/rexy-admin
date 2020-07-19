@@ -16,6 +16,7 @@ require 'rexy_admin/action/update'
 require 'rexy_admin/action/show'
 require 'rexy_admin/action/toggle'
 require 'rexy_admin/action/delete'
+require 'rexy_admin/action/index'
 # require 'rexy_admin/action/index'
 require 'rexy_admin/action/get_form_data'
 

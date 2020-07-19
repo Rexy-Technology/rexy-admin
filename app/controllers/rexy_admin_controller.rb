@@ -28,7 +28,7 @@ class RexyAdminController < ActionController::Base
 
   def catch_all
     if request.get?
-      index
+      get_action
     elsif request.post?
       create
     elsif request.patch?
@@ -45,90 +45,64 @@ class RexyAdminController < ActionController::Base
   #     "details": {}
   #   }
   # }, status: 422
-
   end
 
-  def index
-    path = request.path
-    paths = path.split('/')
-    return show if paths.last == 'edit'
-    return new if paths.last == 'new'
-    return expand_query if paths[-2] == 'expand-query'
-    # result = if objects.length > 1
-    #            source_object = objects[-2]
-    #            source_id = path.split('/')[-2].to_i
-    #            model.rexy_admin_query(params.permit!.merge(source_object:{ name: source_object,
-    #                                                                      id: source_id }))
-    #          else
-    #            model.rexy_admin_query(params.permit!)
-    #          end
-    result = model.rexy_admin_query((params.merge(current_admin: current_admin).permit!))
-    return render json: result[:result] if result[:status] == 'OK'
-
-    render json: errors(result), status: 422
+  def get_action
+    p 'jeje1: ' , paths[-2]
+    if paths.last == 'edit'
+      show
+    elsif paths.last == 'new'
+      new
+    elsif paths[-2] == 'query'
+      p 'jeje3: ' 
+      query
+    else
+      index
+    end
   end
 
+  # Get actions
   def show
     result = model.rexy_admin_show(record_id, (params.merge(current_admin: current_admin).permit!))
-    return render json: result[:result] if result[:status] == 'OK'
-
-    render json: errors(result), status: 422
+    render_json(result)
   end
 
   def new
     result = model.rexy_admin_get_form_data((params.merge(current_admin: current_admin).permit!))
-    return render json: result[:result] if result[:status] == 'OK'
-
-    render json: errors(result), status: 422
+    render_json(result)
   end
 
-  def toggle_active
-    result = model.rexy_admin_toggle(record_id, (params.merge(current_admin: current_admin).permit!))
-    return render json: result[:result] if result[:status] == 'OK'
+  def query
+    result = model.rexy_admin_query(params.merge(current_admin: current_admin, path_request: path_request).permit!)
+    render_json(result)
+  end
 
-    render json: errors(result), status: 422
+  def index
+    result = model.rexy_admin_index((params.merge(current_admin: current_admin).permit!))
+    render_json(result)
   end
 
   def create
     result = model.rexy_admin_create(params.merge(current_admin: current_admin).permit!)
-    return render json: result[:result] if result[:status] == 'OK'
-
-    render json: errors(result), status: 422
+    render_json(result)
   end
 
-  def delete
-    result = model.rexy_admin_delete(record_id, (params.merge(current_admin: current_admin).permit!))
-    return render json: result[:result] if result[:status] == 'OK'
-
-    render json: errors(result), status: 422
+  def toggle_active
+    result = model.rexy_admin_toggle(record_id, (params.merge(current_admin: current_admin).permit!))
+    render_json(result)
   end
 
   def update
     result = model.rexy_admin_update(record_id, (params.merge(current_admin: current_admin).permit!))
-    return render json: result[:result] if result[:status] == 'OK'
-
-    render json: errors(result), status: 422
+    render_json(result)
   end
 
-  def expand_query
-    result = model.rexy_admin_expand_query(params.merge(current_admin: current_admin, path_request: path_request).permit!)
-    return render json: result[:result] if result[:status] == 'OK'
-
-    render json: errors(result), status: 422
+  def delete
+    result = model.rexy_admin_delete(record_id, (params.merge(current_admin: current_admin).permit!))
+    render_json(result)
   end
-
   
   private
-
-  def errors(result)
-    {
-      "errors": result[:result].is_a?(String) ? {
-        "message": result[:result],
-        "details": {}
-      } : result[:result][:errors][0]
-    }
-  end
-  
   def path_request
     @path_request = request.path
   end
@@ -148,6 +122,25 @@ class RexyAdminController < ActionController::Base
                                .reject { |e| e.match?(/^edit|new/) || e.blank? }\
                                .last\
                                .to_i
+  end
+
+  def paths
+    path = request.path
+    @paths ||= path.split('/')
+  end
+
+  def render_json(result)
+    result[:status] == 'OK' ? render(json: result[:result])
+                            : render(json: errors(result), status: 422)
+  end
+
+  def errors(result)
+    {
+      "errors": result[:result].is_a?(String) ? {
+        "message": result[:result],
+        "details": {}
+      } : result[:result][:errors][0]
+    }
   end
 
 end 
