@@ -48,13 +48,11 @@ class RexyAdminController < ActionController::Base
   end
 
   def get_action
-    p 'jeje1: ' , paths[-2]
     if paths.last == 'edit'
       show
     elsif paths.last == 'new'
       new
     elsif paths[-2] == 'query'
-      p 'jeje3: ' 
       query
     else
       index

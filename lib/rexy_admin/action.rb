@@ -17,7 +17,6 @@ require 'rexy_admin/action/show'
 require 'rexy_admin/action/toggle'
 require 'rexy_admin/action/delete'
 require 'rexy_admin/action/index'
-# require 'rexy_admin/action/index'
 require 'rexy_admin/action/get_form_data'
 
 module RexyAdmin
@@ -49,11 +48,9 @@ module RexyAdmin
     end
 
     def set_mutation_actions(action: ,
-                             custom_query: where(''),
                              context: {},
                              params_checker: nil,
                              command: nil)
-      instance_variable_set("@#{action}_custom_query", custom_query)
       instance_variable_set("@#{action}_context", context)
       instance_variable_set("@#{action}_params_checker", params_checker)
       instance_variable_set("@#{action}_command", command)
@@ -91,29 +88,39 @@ module RexyAdmin
     end
 
     # Custom
-    def custom_action params, params_checker, context, command , default_action
-      return custom_action_with_params_checker(params, params_checker, context, command , default_action) if params_checker.present?
-      custom_action_without_params_checker(params, command , default_action)
+    def execute_action(params, action)
+      action, params_checker, context, custom_command, default_action = action_variables(action)
+
+      if params_checker.present?
+        params_checker_cmd = params_checker.call(params: params, context: context.merge(current_admin: params["current_admin"]))
+        return {status: 'FAIL', result: params_checker_cmd.errors} if params_checker_cmd.failure?
+
+        params = params_checker_cmd.result
+      end
+
+      custom_command.present? ? execute_custom_command(params, commands) 
+                              : execute_default_action(params, default_action)
     end
 
-    def custom_action_with_params_checker params, params_checker, context, command , default_action
-      params_checker_cmd = params_checker.call(params: params, context: context.merge(current_admin: params["current_admin"]))
-      return {status: 'FAIL', result: params_checker_cmd.errors} if params_checker_cmd.failure?
-      
-      return custom_command(command, params_checker_cmd.result) if command.present?
-        
-      send default_action, params_checker_cmd.result
+    def action_variables(action)
+      action = action.to_s
+      # Dynamically get instance_variables
+      # (e.g., create_params_checker, update_context,
+      #  delete_custom_command, default_toggle)
+      params_checker = instance_variable_get("@#{action}_params_checker")
+      context = instance_variable_get("@#{action}_context")
+      custom_command  = instance_variable_get("@#{action}_custom_command")
+      default_action = "default_#{action}"
+      [action, params_checker, context, custom_command, default_action]
     end
 
-    def custom_action_without_params_checker params, command , default_action
-      return custom_command(command, params) if command.present?
-          
-      send default_action, params
-    end
-
-    def custom_command command, params
+    def execute_custom_command params, command
       cmd = command.call(params)
       {status: 'OK', result: cmd.result}
+    end
+
+    def execute_default_action(params, default_action)
+      send(default_action, params)
     end
 
     def filter_params params

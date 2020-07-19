@@ -42,7 +42,6 @@ module RexyAdmin
     end
 
     def rexy_admin_query(params = {})
-      p 'queryne'
       route = route(params)
       raise "This query route not exist." unless route_exists?(route)
 

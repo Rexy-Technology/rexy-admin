@@ -1,30 +1,23 @@
 module RexyAdmin
   module Action
     def rexy_admin_create(params = {})
-      raise "Action create is not set in model #{model_name} yet." unless :create.in? @actions
-      return custom_create(params) if @create_params_checker.present?
+      action = :create
+      raise "Action #{action.to_s} is not set in model #{model_name} yet." unless action.in? @actions
 
-      default_create(params)
+      execute_action(params, action)
     end
 
     def default_create params
-      params = filter_params params
-      result = ''
+      params = filter_params(params)
       create_multiple_records = params[:objects].present?
-
       if create_multiple_records
-        records = create!(params[:objects])
-        result = {status: 'OK'}
+        create!(params[:objects])
+        {status: 'OK', result: {status: 'OK'}}
       else
         record = create!(params)
-        result = {id: record.id}
+        {status: 'OK', result: {id: record.id}}
       end
-      
-      {status: 'OK', result: result}
     end
 
-    def custom_create params 
-       custom_action(params, @create_params_checker, @create_context, @create_command, 'default_create')
-    end
   end
 end

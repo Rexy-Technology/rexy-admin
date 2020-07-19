@@ -1,21 +1,6 @@
-# frozen_string_literal: true
-
-# rubocop:disable AbcSize
-# rubocop:disable MethodLength
-# rubocop:disable PerceivedComplexity
-# rubocop:disable CyclomaticComplexity
-# rubocop:disable ModuleLength
-# rubocop:disable HandleExceptions, BlockLength
-# rubocop:disable EvalWithLocation, Eval
-# rubocop:disable ParameterLists
-# rubocop:disable Style/Next
-# rubocop:disable BlockNesting
-
 module RexyAdmin
   module Action
     def rexy_admin_index(params = {})
-      p 'indexne'
-
       raise "Action index is not set in model #{model_name} yet." unless :index.in? @actions
 
       cmd = index_cmd(params)
