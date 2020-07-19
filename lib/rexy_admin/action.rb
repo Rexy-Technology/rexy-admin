@@ -122,15 +122,6 @@ module RexyAdmin
     def execute_default_action(params, default_action)
       send(default_action, params)
     end
-
-    def filter_params params
-      filtered_params = {}
-      params.each do |key, value|
-        filtered_params[key.to_sym] = value if key.to_s.in?(column_names + ["password"])
-      end
-      filtered_params
-    end
-
   end
 end
 

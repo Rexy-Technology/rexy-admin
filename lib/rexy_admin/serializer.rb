@@ -64,7 +64,6 @@ module RexyAdmin
 
         query_records
         paginate_and_arrange_records
-
         result = {
           records: formated_hash_records
         }
@@ -108,14 +107,15 @@ module RexyAdmin
 
       def query_records
         # deprecated select_string since now get associations fields by includes, just '.supplier.id'
-        @records = model.joins(join_and_include_array)
-                        .includes(join_and_include_array)
+        @records = model.includes(join_and_include_array)
+                        .left_outer_joins(join_and_include_array)
+        p 'jeje1: ', records.count
         @records = after_query.call(records, params) if after_query.present?
+        p 'jeje2: ', records.count
       end
   
       def query_record
-        records = model.joins(join_and_include_array)
-                       .includes(join_and_include_array)
+        records = model.includes(join_and_include_array)
         @record = after_query.present? ? after_query.call(records, params).first : records.first  
 
         @record_exist = record.present?
@@ -134,13 +134,16 @@ module RexyAdmin
         # p 'search_string: ' , search_string
         # p 'order_string: ' , order_string
         records_before_limit = records.where(search_string).order(order_string)
+        p 'jeje3: ', records.count
         @total_count = records_before_limit.count
         @records = records_before_limit.page(pagination[:page]).per(pagination[:per_page]) if paginate
+        p 'jeje4: ', records.count
+        p 'jeje5: ', records
       end
 
-      def select_string
-        SelectString.call(schema, model, arrangement).result
-      end
+      # def select_string
+      #   SelectString.call(schema, model, arrangement).result
+      # end
 
       def search_string
         SearchString.call(schema, model, arrangement).result

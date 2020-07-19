@@ -45,12 +45,14 @@ module RexyAdmin
 
         # has many ? [{}, {}, ...] : {}
         association[:has_many] ? to_hash_array(record, parent_record, parent_hash, association)\
-                              : to_hash(record, parent_record, parent_hash, association)
+                               : to_hash(record, parent_record, parent_hash, association)
       end
 
       def to_hash_array(record, parent_record, parent_hash, association)
         model_name = association[:model].model_name.plural.to_sym
         current_records = parent_record.send(model_name)
+        return [] unless current_records.present?
+
         current_records.map do |current_record|
           hash = Helper.serialize(current_record, association[:fields])
           child_hash = get_child_hash(record, current_record, hash, association)
@@ -62,6 +64,8 @@ module RexyAdmin
         model_object = {}
         model_name = association[:model].model_name.singular.to_sym
         current_record = parent_record.send(model_name)
+        return {} unless current_record.present?
+
         association[:fields].each do |association_field|
           model_object[association_field] = current_record.send(association_field)
         end
