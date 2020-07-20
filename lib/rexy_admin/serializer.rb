@@ -134,11 +134,8 @@ module RexyAdmin
         # p 'search_string: ' , search_string
         # p 'order_string: ' , order_string
         records_before_limit = records.where(search_string).order(order_string)
-        p 'jeje3: ', records.count
         @total_count = records_before_limit.count
         @records = records_before_limit.page(pagination[:page]).per(pagination[:per_page]) if paginate
-        p 'jeje4: ', records.count
-        p 'jeje5: ', records
       end
 
       # def select_string
