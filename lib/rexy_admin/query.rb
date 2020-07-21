@@ -12,7 +12,7 @@
 # rubocop:disable BlockNesting
 
 EXCLUDE_SEARCH_STRING = %w[id created_at password].freeze
-EXCLUDE_KEYS_STRING = %w[password_digest created_at deleted_at].freeze
+EXCLUDE_KEYS_STRING = %w[password_digest deleted_at].freeze
 module RexyAdmin
   module Query
     def set_params(params)
