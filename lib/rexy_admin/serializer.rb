@@ -6,7 +6,7 @@ require 'rexy_admin/serializer/search_string'
 require 'rexy_admin/serializer/select_string'
 require 'rexy_admin/serializer/validate_association'
 
-EXCLUDE_KEYS_STRING = %w[password_digest created_at deleted_at].freeze
+EXCLUDE_KEYS_STRING = %w[password_digest deleted_at].freeze
 
 module RexyAdmin
   module Serializer 
