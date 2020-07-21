@@ -23,6 +23,7 @@ module RexyAdmin
   module Action
     # Custom
     def custom_action params, params_checker, context, command , default_action
+      p 'custom_action'
       return custom_action_with_params_checker(params, params_checker, context, command , default_action) if params_checker.present?
       custom_action_without_params_checker(params, command , default_action)
     end
@@ -39,7 +40,7 @@ module RexyAdmin
     def custom_action_without_params_checker params, command , default_action
       return custom_command(command, params) if command.present?
           
-      send default_action, params
+      send(default_action, params)
     end
 
     def custom_command command, params
