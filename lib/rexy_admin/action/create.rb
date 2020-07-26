@@ -10,7 +10,9 @@ module RexyAdmin
     end
 
     def default_create params
+      p 'before: ' , params
       params = filter_params(params)
+      p 'after: ' , params
       create_multiple_records = params[:objects].present?
       if create_multiple_records
         create!(params[:objects])
