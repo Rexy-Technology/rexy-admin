@@ -12,8 +12,8 @@ module RexyAdmin
       params.each do |key, value|
         next unless key_is_valid(key)
 
-        formatted_key = key_in_column_names(outest_model, key) ? key.to_sym : "#{key}_attributes"
         value = filtered_value(key, value) if value.is_a?(Array) && key_in_associations(outest_model, key)
+        formatted_key = key_in_column_names(outest_model, key) ? key.to_sym : "#{key}_attributes"
         filtered_params[formatted_key] = value 
       end
       filtered_params
@@ -30,12 +30,8 @@ module RexyAdmin
           parent_model = parent_key.classify.constantize
           next unless child_key_is_valid(parent_model, key)
           
-          formatted_key = key_in_column_names(parent_model, key) ? key.to_sym : "#{key}_attributes"
-          p 'value: ' , value
-          p 'condi1: ' , value.is_a?(Array)
-          p 'condi2: ' , key_in_associations(parent_model, key)
-          p 'condi3: ' , value.is_a?(Array) && key_in_associations(parent_model, key)
           value = filtered_value(key, value) if value.is_a?(Array) && key_in_associations(parent_model, key)
+          formatted_key = key_in_column_names(parent_model, key) ? key.to_sym : "#{key}_attributes"
           filtered_hash[formatted_key] = value 
         end
         filtered_hash

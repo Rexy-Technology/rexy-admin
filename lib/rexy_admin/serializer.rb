@@ -41,7 +41,7 @@ module RexyAdmin
       def initial_schema(schema)
         raise "Please provide a model" unless schema[:model].present?
 
-        fields = schema[:fields]&.presence&.uniq&.map(&:to_sym) || []
+        fields = schema[:fields]&.presence&.uniq&.map(&:to_sym) || schema[:model].column_names
         search_fields = schema[:search_fields]&.presence&.uniq&.map(&:to_sym) || fields                                               
 
         {
@@ -85,6 +85,7 @@ module RexyAdmin
       end
   
       def model
+        p 'schema: ' , schema
         @model ||= schema[:model]
       end
   
