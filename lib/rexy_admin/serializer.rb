@@ -109,9 +109,7 @@ module RexyAdmin
         # deprecated select_string since now get associations fields by includes, just '.supplier.id'
         @records = model.includes(join_and_include_array)
                         .left_outer_joins(join_and_include_array)
-        p 'jeje1: ', records.count
         @records = after_query.call(records, params) if after_query.present?
-        p 'jeje2: ', records.count
       end
   
       def query_record

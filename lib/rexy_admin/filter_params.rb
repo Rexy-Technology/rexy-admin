@@ -31,7 +31,11 @@ module RexyAdmin
           next unless child_key_is_valid(parent_model, key)
           
           formatted_key = key_in_column_names(parent_model, key) ? key.to_sym : "#{key}_attributes"
-          value = filtered_value(formatted_key, value) if value.is_a?(Hash) && key_in_associations(parent_model, key)
+          p 'value: ' , value
+          p 'condi1: ' , value.is_a?(Array)
+          p 'condi2: ' , key_in_associations(parent_model, key)
+          p 'condi3: ' , value.is_a?(Array) && key_in_associations(parent_model, key)
+          value = filtered_value(key, value) if value.is_a?(Array) && key_in_associations(parent_model, key)
           filtered_hash[formatted_key] = value 
         end
         filtered_hash

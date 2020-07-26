@@ -11,6 +11,7 @@ module RexyAdmin
 
     def default_create params
       params = RexyAdmin::FilterParams.call(self, params).result
+      p 'after: ' , params
       create_multiple_records = params[:objects].present?
       if create_multiple_records
         create!(params[:objects])
