@@ -1,4 +1,4 @@
-require 'rexy_admin/action/filter_params'
+require 'rexy_admin/filter_params'
 module RexyAdmin
   module Action
     # Update 
@@ -11,7 +11,7 @@ module RexyAdmin
     end
     
     def default_update params
-      params = filter_params(params)
+      params = RexyAdmin::FilterParams.call(self, params).result
       record = find_by_id(params[:id])
       return {status: 'OK', result: {id: params[:id]}} if record.present? && record.update(params)
       

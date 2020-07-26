@@ -1,4 +1,4 @@
-require 'rexy_admin/action/filter_params'
+require 'rexy_admin/filter_params'
 
 module RexyAdmin
   module Action
@@ -10,9 +10,7 @@ module RexyAdmin
     end
 
     def default_create params
-      p 'before: ' , params
-      params = filter_params(params)
-      p 'after: ' , params
+      params = RexyAdmin::FilterParams.call(self, params).result
       create_multiple_records = params[:objects].present?
       if create_multiple_records
         create!(params[:objects])

@@ -1,23 +1,26 @@
 module RexyAdmin
-  module Action
+  class FilterParams
+    prepend SimpleCommand
 
-    def filter_params params
+    def initialize(outest_model, params)
+      @outest_model = outest_model
+      @params = params
+    end
+
+    def call
       filtered_params = {}
       params.each do |key, value|
         next unless key_is_valid(key)
 
-        formatted_key = key_in_column_names(self, key) ? key.to_sym : "#{key}_attributes"
-        p 'key: ' , key
-        p 'condi1: ' , value.is_a?(Array)
-        p 'condit2: ' , key_in_associations(self, key)
-        value = filtered_value(key, value) if value.is_a?(Array) && key_in_associations(self, key)
+        formatted_key = key_in_column_names(outest_model, key) ? key.to_sym : "#{key}_attributes"
+        value = filtered_value(key, value) if value.is_a?(Array) && key_in_associations(outest_model, key)
         filtered_params[formatted_key] = value 
       end
       filtered_params
     end
 
     def key_is_valid(key)
-      key_in_column_names(self, key) || key_in_associations(self, key)
+      key_in_column_names(outest_model, key) || key_in_associations(outest_model, key)
     end
 
     def filtered_value parent_key, parent_array
@@ -53,6 +56,7 @@ module RexyAdmin
       has_many_names = model.reflect_on_all_associations(:has_many).map(&:name)
       (belongs_to_names + has_one_names + has_many_names).uniq
     end
-    
+
+    attr_accessor :params, :outest_model
   end
 end
