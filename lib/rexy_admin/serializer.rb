@@ -85,7 +85,6 @@ module RexyAdmin
       end
   
       def model
-        p 'schema: ' , schema
         @model ||= schema[:model]
       end
   
@@ -106,19 +105,24 @@ module RexyAdmin
         true
       end
 
+      def get_query_records
+        @get_query_records ||= model.includes(join_and_include_array)
+                                    .references(join_and_include_array)
+                                    # .distinct(:id)
+                                    
+      end
+
       def query_records
         # deprecated select_string since now get associations fields by includes, just '.supplier.id'
-        @records = model.includes(join_and_include_array)
-                        .left_outer_joins(join_and_include_array)
+        @records = get_query_records
         @records = after_query.call(records, params) if after_query.present?
       end
   
       def query_record
-        records = model.includes(join_and_include_array)
+        @records = get_query_records
         @record = after_query.present? ? after_query.call(records, params).first : records.first  
 
         @record_exist = record.present?
-
         errors.add(:errors, {
             "message": "#{model.model_name.human} not exist.",
             "details": {}
@@ -133,7 +137,7 @@ module RexyAdmin
         # p 'search_string: ' , search_string
         # p 'order_string: ' , order_string
         records_before_limit = records.where(search_string).order(order_string)
-        @total_count = records_before_limit.count
+        @total_count = records_before_limit.length
         @records = records_before_limit.page(pagination[:page]).per(pagination[:per_page]) if paginate
       end
 
