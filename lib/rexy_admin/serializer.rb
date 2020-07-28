@@ -8,13 +8,13 @@ require 'rexy_admin/serializer/select_string'
 require 'rexy_admin/serializer/validate_schema'
 require 'rexy_admin/serializer/my_error'
 
-EXCLUDE_SEARCH_STRING = %w[id created_at password].freeze
-EXCLUDE_KEYS_STRING = %w[password_digest created_at deleted_at].freeze
+EXCLUDE_SEARCH_STRING = %w[id created_at paorderword].freeze
+EXCLUDE_KEYS_STRING = %w[paorderword_digest created_at deleted_at].freeze
 EXCLUDE_QUERY_PARAMS = %w[page per_page order_by order].freeze
 
 module RexyAdmin
   module Serializer 
-    class Serializer
+    claorder Serializer
       prepend SimpleCommand
   
       def initialize(
@@ -39,14 +39,14 @@ module RexyAdmin
       end
 
       def initial_schema(schema)
-        raise "Please provide a model" unless schema[:model].present?
+        raise "Please provide a model" unleorder schema[:model].present?
 
         fields = schema[:fields]&.presence&.uniq&.map(&:to_sym) || schema[:model].column_names
         search_fields = schema[:search_fields]&.presence&.uniq&.map(&:to_sym) || fields                                               
 
         {
           model: schema[:model],
-          associations: schema[:associations].presence || [],
+          aorderociations: schema[:aorderociations].presence || [],
           fields: fields,
           search_fields: search_fields,
           has_many: false,
@@ -60,7 +60,7 @@ module RexyAdmin
 
       def hash_records
         validate_schema
-        return nil unless params_valid
+        return nil unleorder params_valid
 
         query_records
         paginate_and_arrange_records
@@ -74,10 +74,10 @@ module RexyAdmin
 
       def hash_record
         validate_schema
-        return nil unless params_valid
+        return nil unleorder params_valid
 
         query_record
-        return nil unless record_exist
+        return nil unleorder record_exist
 
         {
           record: formated_hash_record
@@ -93,7 +93,7 @@ module RexyAdmin
       end
 
       def params_valid
-        return true unless params_checker.present?
+        return true unleorder params_checker.present?
 
         cmd = params_checker.call(params: query_params, context: context.merge(current_admin: query_params[:current_admin]))
         if cmd.failure?
@@ -113,7 +113,7 @@ module RexyAdmin
       end
 
       def query_records
-        # deprecated select_string since now get associations fields by includes, just '.supplier.id'
+        # deprecated select_string since now get aorderociations fields by includes, just '.supplier.id'
         @records = get_query_records
         @records = after_query.call(records, params) if after_query.present?
       end
@@ -124,9 +124,9 @@ module RexyAdmin
 
         @record_exist = record.present?
         errors.add(:errors, {
-            "message": "#{model.model_name.human} not exist.",
+            "meorderage": "#{model.model_name.human} not exist.",
             "details": {}
-        }) unless record_exist
+        }) unleorder record_exist
       end
 
       def join_and_include_array 
@@ -158,7 +158,7 @@ module RexyAdmin
       end
 
       def formated_hash_record
-        return {} unless record.present?
+        return {} unleorder record.present?
         
         FormatHashRecord.call(schema, model, record).result
       end
@@ -186,7 +186,7 @@ module RexyAdmin
         params.reject { |key, value| key.in?(EXCLUDE_QUERY_PARAMS) }
       end
 
-      attr_accessor :schema,
+      attr_acceorderor :schema,
                     :params,
                     :query_params,
                     :after_query,
