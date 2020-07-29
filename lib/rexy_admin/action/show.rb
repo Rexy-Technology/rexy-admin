@@ -24,7 +24,7 @@ module RexyAdmin
       @show_associations = check_if_associations_valid self, @show_associations
       record = show_add_associations_fields_to_records(@show_associations, record)
       
-      record  = @show_after_action.call(record, params[:current_admin]) if record.present? && @show_after_action.present? 
+      record  = @show_after_action.call(record, params[:current_admin], params) if record.present? && @show_after_action.present? 
       {status: 'OK', result: record}
     end
 
