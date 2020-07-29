@@ -58,7 +58,7 @@ module RexyAdmin
       p 'joins: ' , index_join_array
       p 'select: ' , index_select_string
       records = joins(index_join_array).select(index_select_string)
-      records = @index_after_query.call(records, @params[:current_admin]) if @index_after_query.present?
+      records = @index_after_query.call(records, @params[:current_admin], params) if @index_after_query.present?
       records, total_count = paginate_and_arrange_records records
       hash_records = index_add_associations_fields_to_records(@index_associations, records)
       hash_records = @index_after_action.call(hash_records, @params[:current_admin], @params) if @index_after_action.present?
