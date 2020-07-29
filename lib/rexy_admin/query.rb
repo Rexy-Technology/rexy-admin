@@ -51,7 +51,7 @@ module RexyAdmin
       
       records = cmd.result[:records]
       pagination = cmd.result[:pagination]
-      records = query[:after_action].call(records, params[:current_admin]) if query[:after_action].present?
+      records = query[:after_action].call(records, params) if query[:after_action].present?
       {status: 'OK', result: {
         records: records,
         pagination: pagination

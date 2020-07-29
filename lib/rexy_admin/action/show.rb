@@ -8,7 +8,7 @@ module RexyAdmin
       return {status: 'FAIL', result: cmd.errors} if cmd.failure?
       
       record = cmd.result[:record]
-      record = @show_after_action.call(record, params[:current_admin]) if @show_after_action.present?
+      record = @show_after_action.call(record, params if @show_after_action.present?
       {status: 'OK', result: {
         record: record
       }}
