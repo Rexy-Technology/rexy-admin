@@ -68,6 +68,7 @@ class RexyAdminController < ActionController::Base
 
   def new
     result = model.rexy_admin_get_form_data((params.merge(current_admin: current_admin).permit!))
+    p 'result: ' , result
     render_json(result)
   end
 

@@ -29,8 +29,8 @@ module RexyAdmin
       end
 
       def search_fields_array_of_outest_model
-        schema[:fields].map do |v|
-          "#{model.table_name}.#{v}" unless EXCLUDE_KEYS_STRING.find_index(v)
+        schema[:search_fields].map do |search_field|
+          "#{model.table_name}.#{search_field}" unless EXCLUDE_KEYS_STRING.find_index(v)
         end&.compact
       end
 
@@ -49,11 +49,11 @@ module RexyAdmin
       end
 
       def search_fields_array_of_association(association)
-        association[:search_fields].map do |association_field|
-          unless EXCLUDE_KEYS_STRING.find_index(association_field)
-            "#{association[:model].table_name}.#{association_field}" 
+        association[:search_fields].map do |search_field|
+          unless EXCLUDE_KEYS_STRING.find_index(search_field)
+            "#{association[:model].table_name}.#{search_field}" 
           end
-        end
+        end&.compact
       end
 
       attr_accessor :schema, :model, :arrangement
