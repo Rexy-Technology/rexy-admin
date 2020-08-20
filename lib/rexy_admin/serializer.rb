@@ -110,15 +110,19 @@ module RexyAdmin
 
       def get_query_records
         return @get_query_records if @get_query_records.present?
+
         @get_query_records = model.includes(join_and_include_array)
                                   .references(join_and_include_array)
                                   # .distinct(:id)
 
         @get_query_records = after_query.call(get_query_records, params) if after_query.present?
+        @get_query_records
       end
 
       def query_records
         # deprecated select_string since now get associations fields by includes, just '.supplier.id'
+        
+        # p "========>get_query_records: ", get_query_records
         @records = get_query_records
       end
   
