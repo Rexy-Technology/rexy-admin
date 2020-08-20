@@ -109,10 +109,12 @@ module RexyAdmin
       end
 
       def get_query_records
+        return @get_query_records if @get_query_records.present?
         @get_query_records = model.includes(join_and_include_array)
                                   .references(join_and_include_array)
                                   # .distinct(:id)
-        @get_query_records ||= after_query.call(get_query_records, params) if after_query.present?
+
+        @get_query_records = after_query.call(get_query_records, params) if after_query.present?
       end
 
       def query_records
@@ -136,6 +138,7 @@ module RexyAdmin
       end
   
       def paginate_and_arrange_records
+        p 'records: ' , records
         p 'search_string: ' , search_string
         # p 'order_string: ' , order_string
         records_before_limit = records.where(search_string).order(order_string)
