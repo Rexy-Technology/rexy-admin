@@ -32,8 +32,8 @@ module RexyAdmin
             association[:model].model_name.singular.to_sym.in?(Helper.belongs_to_or_has_one_relate_model_names(parent_model)) || 
             association[:model].model_name.plural.to_sym.in?(Helper.has_many_model_names(parent_model))
           )
-        (association[:fields].presence || []).each { |association_field| raise("Association fields not exists.") unless association_field.to_s.in? association[:model].column_names }
-      end
+          (association[:fields].presence || []).each { |association_field| raise("Model '#{association[:model]}' not have field '#{association_field.to_s}'.") unless association_field.to_s.in? association[:model].column_names }
+        end
   
       def formatted_association(parent_model, associations, in_has_many_branch, association)
         has_many = Helper.is_has_many_relation?(parent_model, association[:model])
