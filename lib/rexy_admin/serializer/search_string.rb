@@ -30,7 +30,7 @@ module RexyAdmin
 
       def search_fields_array_of_outest_model
         schema[:search_fields].map do |search_field|
-          "#{model.table_name}.#{search_field}" unless EXCLUDE_KEYS_STRING.find_index(v)
+          "#{model.table_name}.#{search_field}" unless EXCLUDE_KEYS_STRING.find_index(search_field)
         end&.compact
       end
 
