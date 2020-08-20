@@ -4,8 +4,7 @@ require 'rexy_admin/query'
 require 'rexy_admin/form'
 require 'rexy_admin/json'
 require 'rexy_admin/action'
-
-
+require 'rexy_admin/serializer'
 
 module RexyAdmin
   def self.included(base)
