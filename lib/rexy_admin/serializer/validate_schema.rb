@@ -42,8 +42,7 @@ module RexyAdmin
         in_has_many_branch = has_many || in_has_many_branch
         # Fields
         fields = association[:fields].presence&.uniq&.map(&:to_sym) || []
-        search_fields = association[:search_fields].presence&.uniq&.map(&:to_sym).reject{|key| key == :id} || fields
-        # Initialize data
+        search_fields = association[:search_fields].present? ? association[:search_fields].presence&.uniq&.map(&:to_sym).reject{|key| key == :id} : fields        # Initialize data
         formatted_association = {
           model: association[:model],
           fields: fields,
