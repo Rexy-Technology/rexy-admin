@@ -57,28 +57,20 @@ module RexyAdmin
       end
 
       def call
-        p 'call, many: ', many
         many ? hash_records : hash_record
       end
 
       def hash_records
-        # p 'step1'
         validate_schema
-        # p 'step2'
         return nil unless params_valid
-        # p 'step3'
         
         query_records
-        # p 'step4'
         paginate_and_arrange_records
-        # p 'step5'
         result = {
           records: formated_hash_records
         }
-        # p 'step6'
         
         result[:pagination] = pagination.merge(total_count: total_count) if paginate
-        # p 'step7'
         result
       end
 
