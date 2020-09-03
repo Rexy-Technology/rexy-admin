@@ -57,27 +57,28 @@ module RexyAdmin
       end
 
       def call
+        p 'call, many: ', many
         many ? hash_records : hash_record
       end
 
       def hash_records
-        p 'step1'
+        # p 'step1'
         validate_schema
-        p 'step2'
+        # p 'step2'
         return nil unless params_valid
-        p 'step3'
+        # p 'step3'
         
         query_records
-        p 'step4'
+        # p 'step4'
         paginate_and_arrange_records
-        p 'step5'
+        # p 'step5'
         result = {
           records: formated_hash_records
         }
-        p 'step6'
+        # p 'step6'
         
         result[:pagination] = pagination.merge(total_count: total_count) if paginate
-        p 'step7'
+        # p 'step7'
         result
       end
 
@@ -116,12 +117,12 @@ module RexyAdmin
 
       def get_query_records
         return @get_query_records if @get_query_records.present?
-
+        
         @get_query_records = model.includes(join_and_include_array)
                                   .references(join_and_include_array)
-                                  # .distinct(:id)
-
-        @get_query_records = after_query.call(get_query_records, params) if after_query.present?
+        # .distinct(:id)
+        
+        @get_query_records = after_query.call(@get_query_records, params) if after_query.present?
         @get_query_records
       end
 
