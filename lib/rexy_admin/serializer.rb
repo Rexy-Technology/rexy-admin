@@ -115,7 +115,7 @@ module RexyAdmin
                                   .references(join_and_include_array)
                                   # .distinct(:id)
 
-        @get_query_records = after_query.call(get_query_records, params) if after_query.present?
+        @get_query_records = after_query.call(@get_query_records, params) if after_query.present?
         @get_query_records
       end
       end
