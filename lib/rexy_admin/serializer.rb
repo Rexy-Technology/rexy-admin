@@ -114,9 +114,18 @@ module RexyAdmin
         @get_query_records = model.includes(join_and_include_array)
                                   .references(join_and_include_array)
                                   # .distinct(:id)
+        @get_query_records = filter_query_records_by_after_query() if after_query.present?
 
-        @get_query_records = after_query.call(@get_query_records, params) if after_query.present?
         @get_query_records
+      end
+
+      def filter_query_records_by_after_query
+        total_parameters_count = after_query.arity
+
+        arguments = [@get_query_records, params, query_params[:current_admin]]
+        arguments = arguments[0..total_parameters_count - 1]
+
+        @get_query_records = after_query.call(*arguments)
       end
 
       def query_records
