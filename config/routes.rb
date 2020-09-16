@@ -17,7 +17,7 @@ class RexyAdminContrains
     # p '3: ' , request.path.split('/')[2]
     # p '4: ' , request.path.split('/')[2].classify
     # p '5: ' , request.path.split('/')[2].classify&.constantize
-    model = request.path.split('/')[2].classify&.constantize
+    model = request.path.split('/')[2].classify&.constantize 
     model&.included_modules&.include?(RexyAdmin)
   rescue => e
     false
@@ -34,5 +34,5 @@ Rails.application.routes.draw do
   match '/rexy-admin/*path', to: 'rexy_admin#catch_all',
                  format: :json, via: %i[get post put delete patch],
                  constraints: RexyAdminContrains.new
-  post 'rexy-admin/login', to: 'rexy_admin#login', constraints: UseRexyAdminLogin.new
+  post '/rexy-admin/login', to: 'rexy_admin#login', constraints: UseRexyAdminLogin.new
 end

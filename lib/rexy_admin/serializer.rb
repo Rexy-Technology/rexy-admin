@@ -118,7 +118,6 @@ module RexyAdmin
         @get_query_records = after_query.call(@get_query_records, params) if after_query.present?
         @get_query_records
       end
-      end
 
       def query_records
         # deprecated select_string since now get associations fields by includes, just '.supplier.id'
@@ -141,7 +140,7 @@ module RexyAdmin
       end
   
       def paginate_and_arrange_records
-        p 'search_string: ' , search_string
+        # p 'search_string: ' , search_string
         # p 'order_string: ' , order_string
         records_before_limit = records.where(search_string).order(order_string)
         @total_count = records_before_limit.length
@@ -187,7 +186,6 @@ module RexyAdmin
           order_by: order_by,
           keyword: @params[:keyword]
         }
-        
       end
 
       def get_query_params

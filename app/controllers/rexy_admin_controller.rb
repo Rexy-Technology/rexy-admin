@@ -23,7 +23,8 @@ class RexyAdminController < ActionController::Base
   end
 
   def current_admin
-    @current_admin ||= model.auth_query.find_by_id(admin_token[:admin_id])
+    @current_admin ||= RexyAdmin.auth_model.find_by_id(admin_token[:admin_id])
+    # @current_admin ||= model.auth_query.find_by_id(admin_token[:admin_id])
   end
 
   def catch_all
@@ -48,7 +49,6 @@ class RexyAdminController < ActionController::Base
   end
 
   def get_action
-    p 'paths: ' , paths
     if paths.last == 'edit'
       show
     elsif paths.last == 'new'
@@ -68,7 +68,6 @@ class RexyAdminController < ActionController::Base
 
   def new
     result = model.rexy_admin_get_form_data((params.merge(current_admin: current_admin).permit!))
-    p 'result: ' , result
     render_json(result)
   end
 
