@@ -27,7 +27,7 @@ module RexyAdmin
       parent_array.map do |parent_hash|
         filtered_hash = {}
         parent_hash.each do |key, value|
-          parent_model = parent_key.classify.constantize
+          parent_model = parent_key.to_s.classify.constantize
           next unless child_key_is_valid(parent_model, key)
           
           value = filtered_value(key, value) if value.is_a?(Array) && key_in_associations(parent_model, key)
