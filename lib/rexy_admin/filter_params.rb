@@ -13,7 +13,8 @@ module RexyAdmin
         next unless key_is_valid(key)
 
         value = filtered_value(key, value) if value.is_a?(Array) && key_in_associations(outest_model, key)
-        formatted_key = key_in_column_names(outest_model, key) ? key.to_sym : "#{key}_attributes"
+        formatted_key = key_in_has_many_associations(outest_model, key) ? "#{key}_attributes" : key.to_sym
+
         filtered_params[formatted_key] = value 
       end
       filtered_params
@@ -31,7 +32,8 @@ module RexyAdmin
           next unless child_key_is_valid(parent_model, key)
           
           value = filtered_value(key, value) if value.is_a?(Array) && key_in_associations(parent_model, key)
-          formatted_key = key_in_column_names(parent_model, key) ? key.to_sym : "#{key}_attributes"
+          formatted_key = key_in_has_many_associations(parent_model, key) ? "#{key}_attributes" : key.to_sym
+
           filtered_hash[formatted_key] = value 
         end
         filtered_hash
@@ -48,6 +50,19 @@ module RexyAdmin
 
     def key_in_associations(model, key)
       key.to_sym.in?(associations(model))
+    end
+
+    def key_in_belongs_to_or_has_one_associations(model, key)
+      has_one_names = model.reflect_on_all_associations(:has_one).map(&:name)
+      has_many_names = model.reflect_on_all_associations(:has_many).map(&:name)
+
+      (has_one_names + has_many_names).uniq
+    end
+
+    def key_in_has_many_associations(model, key)
+      has_many_names = model.reflect_on_all_associations(:has_many).map(&:name)
+
+      key.to_sym.in?(has_many_names)
     end
 
     def associations(model)

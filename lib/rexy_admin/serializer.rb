@@ -24,6 +24,7 @@ module RexyAdmin
         context: {},
         params_checker: nil,
         after_query: nil,
+        after_action: nil,
         many: false,
         paginate: false,
         is_form_data_type: false
@@ -34,6 +35,7 @@ module RexyAdmin
         # raise "Please provide a params_checker when using after_query" if after_query.present? && !params_checker.present?
         @params_checker = params_checker
         @after_query = after_query
+        @after_action = after_action
         @query_params = get_query_params
 
         @many = many
@@ -68,7 +70,7 @@ module RexyAdmin
         query_records
         paginate_and_arrange_records
         result = {
-          records: formated_hash_records
+          records: formatted_hash_records
         }
         
         result[:pagination] = pagination.merge(total_count: total_count) if paginate
@@ -83,7 +85,7 @@ module RexyAdmin
         return nil unless record_exist
 
         {
-          record: formated_hash_record
+          record: formatted_hash_record
         }
       end
   
@@ -169,11 +171,22 @@ module RexyAdmin
         OrderString.call(schema, model, arrangement).result
       end
 
-      def formated_hash_records
-        FormatHashRecords.call(schema, model, records).result
+      def formatted_hash_records
+        formatted_hash_records = FormatHashRecords.call(schema, model, records).result
+        formatted_hash_records = filter_query_records_by_after_action(formatted_hash_records) if after_action.present?
+        formatted_hash_records
       end
 
-      def formated_hash_record
+      def filter_query_records_by_after_action(query_records)
+        total_parameters_count = after_action.arity
+
+        arguments = [query_records, params, query_params[:current_admin]]
+        arguments = arguments[0..total_parameters_count - 1]
+
+        after_action.call(*arguments)
+      end
+
+      def formatted_hash_record
         return {} unless record.present?
         
         FormatHashRecord.call(schema, model, record).result
@@ -205,6 +218,7 @@ module RexyAdmin
                     :params,
                     :query_params,
                     :after_query,
+                    :after_action,
                     :many,
                     :paginate,
                     :records,

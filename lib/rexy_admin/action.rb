@@ -39,7 +39,9 @@ module RexyAdmin
 
     def set_action(*args, **kwargs)
       action = kwargs[:action]
+      
       raise ("action only accept these action types: #{@actions}") unless action.in? ACTIONS
+
       if action.in?(%i[create update delete toggle])
         set_mutation_actions(kwargs)
       else
@@ -50,10 +52,13 @@ module RexyAdmin
     def set_mutation_actions(action: ,
                              context: {},
                              params_checker: nil,
-                             command: nil)
+                             command: nil,
+                             toggle_field: :active)
       instance_variable_set("@#{action}_context", context)
       instance_variable_set("@#{action}_params_checker", params_checker)
       instance_variable_set("@#{action}_command", command)
+
+      instance_variable_set("@toggle_field", toggle_field) if action == :toggle && column_names.map(&:to_sym).include?(toggle_field)
     end
 
     def set_query_actions(action:,

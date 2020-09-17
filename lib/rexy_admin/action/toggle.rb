@@ -10,7 +10,8 @@ module RexyAdmin
 
     def default_toggle(params)
       record = find_by_id(params[:id])
-      return {status: 'OK', result: {id: params[:id]}} if record.present? && record.toggle(:active) && record.save
+      default_toggle_field = :active
+      return {status: 'OK', result: {id: params[:id]}} if record.present? && record.toggle(@toggle_field.presence || default_toggle_field) && record.save
       
       {status: 'FAIL', result: "#{model_name.human} not exist."}
     end

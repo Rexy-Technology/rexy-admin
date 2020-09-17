@@ -6,13 +6,7 @@ module RexyAdmin
       cmd = index_cmd(params)
       return {status: 'FAIL', result: cmd.errors} if cmd.failure?
       
-      records = cmd.result[:records]
-      pagination = cmd.result[:pagination]
-      records = @index_after_action.call(records, params) if @index_after_action.present?
-      {status: 'OK', result: {
-        records: records,
-        pagination: pagination
-      }}
+      {status: 'OK', result: cmd.result}
     end
 
     def index_cmd(params)
@@ -21,6 +15,7 @@ module RexyAdmin
         context: @index_context,
         params_checker: @index_params_checker,
         after_query: @index_after_query.presence || default_index_after_query,
+        after_action: @index_after_action.presence || default_index_after_action,
         many: true,
         paginate: @index_paginate,
         params: params,
@@ -28,6 +23,12 @@ module RexyAdmin
     end
 
     def default_index_after_query
+      lambda do |records, params|
+        records
+      end
+    end
+
+    def default_index_after_action
       lambda do |records, params|
         records
       end
