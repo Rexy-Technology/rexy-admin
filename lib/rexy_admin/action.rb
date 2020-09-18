@@ -101,7 +101,8 @@ module RexyAdmin
 
         params = params_checker_cmd.result
       end
-      custom_command.present? ? execute_custom_command(params, commands) 
+
+      custom_command.present? ? execute_custom_command(params, custom_command) 
                               : execute_default_action(params, default_action)
     end
 
@@ -112,7 +113,7 @@ module RexyAdmin
       #  create_custom_command, default_create)
       params_checker = instance_variable_get("@#{action}_params_checker")
       context = instance_variable_get("@#{action}_context")
-      custom_command  = instance_variable_get("@#{action}_custom_command")
+      custom_command  = instance_variable_get("@#{action}_command")
       default_action = "default_#{action}"
       [action, params_checker, context, custom_command, default_action]
     end
