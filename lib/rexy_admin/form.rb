@@ -32,6 +32,7 @@ module RexyAdmin
 
     def form_records_filtered_by_default
       records = select(form_select_string)
+      records = @form_after_query.call(records, @params[:current_admin], @params) if @form_after_query.present?
       records, total_count = form_paginate_and_arrange_records(records)
       records = @form_after_action.call(records, @params[:current_admin], @params) if @form_after_action.present?
       result_if_success records, pagination.merge(total_count: total_count)

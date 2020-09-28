@@ -74,7 +74,7 @@ module RexyAdmin
       instance_variable_set("@#{action}_command", command)
       instance_variable_set("@#{action}_params_checker", params_checker)
 
-      action.in?([:index]) && instance_variable_set("@#{action}_after_query", after_query)
+      action.in?([:index, :form]) && instance_variable_set("@#{action}_after_query", after_query)
       
       fields = (fields&.uniq&.presence || column_names - exclude_fields) - EXCLUDE_KEYS_STRING
       action.in?([:show, :index, :form]) && instance_variable_set("@#{action}_associations", associations) && 
