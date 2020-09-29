@@ -10,8 +10,15 @@ module RexyAdmin
     end
 
     def default_create params
-      params = RexyAdmin::FilterParams.call(self, params).result
+      # params = RexyAdmin::FilterParams.call(self, params).result
+      params = RexyAdmin::FilterParams.call(
+        model: self,
+        params: params,
+        destroy_untracking_records: true
+      ).result
+
       create_multiple_records = params[:objects].present?
+      
       if create_multiple_records
         create!(params[:objects])
         {status: 'OK', result: {status: 'OK'}}

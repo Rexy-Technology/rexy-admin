@@ -2,64 +2,66 @@ module RexyAdmin
   class FilterParams
     prepend SimpleCommand
 
-    def initialize(outest_model, params)
-      @outest_model = outest_model
+    def initialize(
+      model: nil,
+      params: {},
+      destroy_untracking_records: true
+    )
+      @model = model
       @params = params
+      @destroy_untracking_records = destroy_untracking_records
     end
 
     def call
-      filtered_params = {}
-      params.each do |key, value|
-        next unless key_is_valid(key)
-
-        value = filtered_value(key, value) if value.is_a?(Array) && key_in_associations(outest_model, key)
-        formatted_key = key_in_has_many_associations(outest_model, key) ? "#{key}_attributes" : key.to_sym
-
-        filtered_params[formatted_key] = value 
-      end
-      filtered_params
+      filter_hash(model, params)
     end
 
-    def key_is_valid(key)
-      key_in_column_names(outest_model, key) || key_in_associations(outest_model, key)
-    end
+    def filter_hash(model, hash)
+      hash.each_with_object({}) do |param, hash|
+        key, value = param
 
-    def filtered_value parent_key, parent_array
-      parent_array.map do |parent_hash|
-        filtered_hash = {}
-        parent_hash.each do |key, value|
-          parent_model = parent_key.to_s.classify.constantize
-          next unless child_key_is_valid(parent_model, key)
-          
-          value = filtered_value(key, value) if value.is_a?(Array) && key_in_associations(parent_model, key)
-          formatted_key = key_in_has_many_associations(parent_model, key) ? "#{key}_attributes" : key.to_sym
+        
+        p "========>param : ", param
 
-          filtered_hash[formatted_key] = value 
+        p "========>key_is_valid(key) : ", key_is_valid(model, key)
+        next unless key_is_valid(model, key)
+
+        param_is_nested_object = key_in_has_many_associations?(model, key)
+        param_is_array = value.is_a?(Array)
+        param_may_contains_nested_object = param_is_nested_object && param_is_array
+        
+        if param_may_contains_nested_object
+          value = filter_array(key, value) if param_is_nested_object
         end
-        filtered_hash
+
+        key = param_is_nested_object ? "#{key}_attributes" : key.to_sym
+        
+        hash[key] = value 
       end
     end
 
-    def child_key_is_valid(parent_model, child_key)
-      key_in_column_names(parent_model, child_key) || key_in_associations(parent_model, child_key)
+    def key_is_valid(model, key)
+      key_in_column_names?(model, key) || key_in_associations?(model, key)
     end
 
-    def key_in_column_names(model, key)
+    def filter_array(key, array)
+      array.map do |param|
+        next param unless param.is_a?(Hash)
+        
+        model = key.to_s.classify.constantize
+        filter_hash(model, param)
+      end
+    end
+
+    def key_in_column_names?(model, key)
       key.to_s.in?(model.column_names + ["password"])
     end
 
-    def key_in_associations(model, key)
+    def key_in_associations?(model, key)
       key.to_sym.in?(associations(model))
     end
 
-    def key_in_belongs_to_or_has_one_associations(model, key)
-      has_one_names = model.reflect_on_all_associations(:has_one).map(&:name)
-      has_many_names = model.reflect_on_all_associations(:has_many).map(&:name)
-
-      (has_one_names + has_many_names).uniq
-    end
-
-    def key_in_has_many_associations(model, key)
+    def key_in_has_many_associations?(model, key)
       has_many_names = model.reflect_on_all_associations(:has_many).map(&:name)
 
       key.to_sym.in?(has_many_names)
@@ -72,6 +74,31 @@ module RexyAdmin
       (belongs_to_names + has_one_names + has_many_names).uniq
     end
 
-    attr_accessor :params, :outest_model
+    attr_accessor :params, :model
   end
 end
+
+
+# arr > hash > params
+# author: {
+#   name: 'a'
+#   age: 41,
+#   books: [
+#     {
+#       title: 'a'
+#     }
+#   ]
+# }
+
+# a
+
+# {
+#   "post_hash_tags_attributes":  [
+#     {
+#       "id": 2211,
+#       "hash_tag": "h",
+#       "_destroy": true
+#     }
+#   ]
+# }
+# a.update b

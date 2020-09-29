@@ -11,8 +11,15 @@ module RexyAdmin
     end
     
     def default_update params
-      params = RexyAdmin::FilterParams.call(self, params).result
+      # params = RexyAdmin::FilterParams.call(self, params).result
+      params = RexyAdmin::FilterParams.call(
+        model: self,
+        params: params,
+        destroy_untracking_records: true
+      ).result
+
       record = find_by_id(params[:id])
+      
       return {status: 'OK', result: {id: params[:id]}} if record.present? && record.update(params)
       
       {status: 'FAIL', result: "#{model_name.human} not exist."}
