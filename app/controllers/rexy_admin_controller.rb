@@ -15,7 +15,9 @@ class RexyAdminController < ActionController::Base
   end
 
   def authenticate
-    render json: { authentication: 'Not Authorized.' }, status: 401 unless admin_token.present? && current_admin.present?
+    unless admin_token.present? && current_admin.present?
+      render json: { authentication: 'Not Authorized.' }, status: 401 
+    end
   end
 
   def admin_token
@@ -23,7 +25,8 @@ class RexyAdminController < ActionController::Base
   end
 
   def current_admin
-    @current_admin ||= model.auth_query.find_by_id(admin_token[:admin_id])
+    @current_admin ||= model.get_auth_query(request)
+                            .find_by_id(admin_token[:admin_id])
   end
 
   def catch_all
@@ -45,7 +48,6 @@ class RexyAdminController < ActionController::Base
   #     "details": {}
   #   }
   # }, status: 422
-
   end
 
   def index
@@ -165,11 +167,6 @@ class RexyAdminController < ActionController::Base
   end
 
   def model
-    a = path_request.split('/')
-    .reject { |e| e.match?(/^\d+$|edit|new|form/) || e.blank? }
-    .last
-    .classify
-    p 'jejea: ' , a
     @model ||= path_request.split('/')
                            .reject { |e| e.match?(/^\d+$|edit|new|form/) || e.blank? }
                            .last
@@ -182,6 +179,35 @@ class RexyAdminController < ActionController::Base
                     .reject { |e| e.match?(/^edit|new|form/) || e.blank? }\
                     .last\
                     .to_i
+  end
+
+  def action
+    if request.get?
+      path = request.path
+      paths = path.split('/')
+
+      return 'show' if paths.last == 'edit'
+      return 'get_form_data' if paths.last == 'new'
+      return 'form' if paths.last == 'form'
+    elsif request.post?
+      'create'
+    elsif request.patch?
+      'toggle_active'
+    elsif request.put?
+      'update'
+    elsif request.delete?
+      'delete'
+    end
+  end
+
+  def auth_query
+    # @auth_query ||= RexyAdmin.auth_model.where('action')
+    action = action
+    action_auth_query = instance_variable_get("@#{action}_auth_query")
+
+    action_auth_query.presence ||
+      @general_auth_query || 
+      RexyAdmin.auth_model.where('')
   end
 
 end 

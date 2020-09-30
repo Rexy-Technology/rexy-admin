@@ -11,11 +11,18 @@ module RexyAdmin
       {status: 'OK', result: @get_form_data_command.call(params_checker_cmd.result).result} if @get_form_data_command.present?
     end
 
-    def set_form_data(params_checker: nil, context: {}, command: nil)
+    def set_form_data(
+      params_checker: nil,
+      context: {},
+      command: nil,
+      auth_query: nil
+    )
       instance_variable_set("@setted_form_data", true)
       instance_variable_set("@get_form_data_params_checker", params_checker)
       instance_variable_set("@get_form_data_context", context)
       instance_variable_set("@get_form_data_command", command)
+      instance_variable_set("@get_form_data_auth_query", auth_query)
     end
+
   end
 end
