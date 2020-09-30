@@ -19,12 +19,7 @@ module RexyAdmin
     def filter_hash(model, hash)
       hash.each_with_object({}) do |param, hash|
         key, value = param
-
-        
-        p "========>param : ", param
-
-        p "========>key_is_valid(key) : ", key_is_valid(model, key)
-        next unless key_is_valid(model, key)
+        next unless key_is_valid?(model, key)
 
         param_is_nested_object = key_in_has_many_associations?(model, key)
         param_is_array = value.is_a?(Array)
@@ -40,10 +35,6 @@ module RexyAdmin
       end
     end
 
-    def key_is_valid(model, key)
-      key_in_column_names?(model, key) || key_in_associations?(model, key)
-    end
-
     def filter_array(key, array)
       array.map do |param|
         next param unless param.is_a?(Hash)
@@ -51,6 +42,10 @@ module RexyAdmin
         model = key.to_s.classify.constantize
         filter_hash(model, param)
       end
+    end
+
+    def key_is_valid?(model, key)
+      key_in_column_names?(model, key) || key_in_associations?(model, key)
     end
 
     def key_in_column_names?(model, key)
@@ -71,6 +66,7 @@ module RexyAdmin
       belongs_to_names = model.reflect_on_all_associations(:belongs_to).map(&:name)
       has_one_names = model.reflect_on_all_associations(:has_one).map(&:name)
       has_many_names = model.reflect_on_all_associations(:has_many).map(&:name)
+      
       (belongs_to_names + has_one_names + has_many_names).uniq
     end
 
