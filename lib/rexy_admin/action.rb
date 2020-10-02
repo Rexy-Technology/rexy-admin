@@ -95,6 +95,7 @@ module RexyAdmin
     # Custom
     def execute_action(params, action)
       action, params_checker, context, custom_command, default_action = action_variables(action)
+
       if params_checker.present?
         params_checker_cmd = params_checker.call(params: params, context: context.merge(current_admin: params["current_admin"]))
         return {status: 'FAIL', result: params_checker_cmd.errors} if params_checker_cmd.failure?
@@ -102,8 +103,8 @@ module RexyAdmin
         params = params_checker_cmd.result
       end
 
-      custom_command.present? ? execute_custom_command(params, custom_command) 
-                              : execute_default_action(params, default_action)
+      custom_command.present? ? execute_custom_command(custom_command, params)
+                              : execute_default_action(default_action, params)
     end
 
     def action_variables(action)
@@ -118,13 +119,14 @@ module RexyAdmin
       [action, params_checker, context, custom_command, default_action]
     end
 
-    def execute_custom_command params, command
+    def execute_custom_command(command, params)
       cmd = command.call(params)
+
       {status: 'OK', result: cmd.result}
     end
 
-    def execute_default_action(params, default_action)
-      send(default_action, params)
+    def execute_default_action(command, params)
+      send(command, params)
     end
   end
 end

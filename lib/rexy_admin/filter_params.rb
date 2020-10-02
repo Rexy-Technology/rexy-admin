@@ -24,10 +24,7 @@ module RexyAdmin
         param_is_nested_object = key_in_has_many_associations?(model, key)
         param_is_array = value.is_a?(Array)
         param_may_contains_nested_object = param_is_nested_object && param_is_array
-        
-        if param_may_contains_nested_object
-          value = filter_array(key, value) if param_is_nested_object
-        end
+        value = filter_array(key, value) if param_may_contains_nested_object
 
         key = param_is_nested_object ? "#{key}_attributes" : key.to_sym
         
@@ -49,7 +46,7 @@ module RexyAdmin
     end
 
     def key_in_column_names?(model, key)
-      key.to_s.in?(model.column_names + ["password"])
+      key.to_s.in?(model.column_names + ['password', '_destroy'])
     end
 
     def key_in_associations?(model, key)
