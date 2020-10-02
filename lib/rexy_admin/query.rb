@@ -92,7 +92,8 @@ module RexyAdmin
     end
 
     def paginate_and_arrange_records records
-      # p 'search_string: ' , search_string
+      p '======>search_string: ' , search_string
+      p '@index_search_fields: ' , @index_search_fields
       # p 'order_string: ' , order_string
       records = records.where(search_string).order(order_string).page(pagination[:page]).per(pagination[:per_page])
       [records, records.total_count]
@@ -213,16 +214,30 @@ module RexyAdmin
       current_keys_string.present? ? (is_outest_hash ? current_keys_string :  ', ' + current_keys_string) : ''
     end
 
-    # Search
     def search_string
       search_string = keys_array.map do |v|
                         # Example: "materials.id", "materials.supplier_id"
-                        unless v.split('.').last == 'id' || v.last(3) == '_id'
+                        is_id_field = (v.split('.').last == 'id' || v.last(3) == '_id')
+                        not_in_search_fields = v.split('.').first == table_name && !v.split('.').last.to_sym.in?(@index_search_fields)
+                        # p "========>v.split('.').first : ", v.split('.').first
+                        # p "========>table_name : ", table_name
+                        # p "========>v.split('.').last : ", v.split('.').last
+                        # p "========>table_name.in?(@index_search_fields) : ", table_name.in?(@index_search_fields)
+                        unless is_id_field || not_in_search_fields
                           "COALESCE(lower(#{v}), '') LIKE '%#{arrangement[:keyword]}%'"
                         end
                       end
       search_string.compact.join(' OR ')
     end
+
+    # def search_string
+    #   search_string = @index_search_fields.map do |v|
+    #                     unless v.in? EXCLUDE_SEARCH_STRING
+    #                       "COALESCE(lower(#{table_name}.#{v}), '') LIKE '%#{arrangement[:keyword]}%'"
+    #                     end
+    #                   end
+    #   search_string.compact.join(' OR ')
+    # end
 
     # Order
     def keys_array
