@@ -219,24 +219,17 @@ module RexyAdmin
                         # Example: "materials.id", "materials.supplier_id"
                         is_id_field = (v.split('.').last == 'id' || v.last(3) == '_id')
                         not_in_search_fields = v.split('.').first == table_name && !v.split('.').last.to_sym.in?(@index_search_fields)
-                        p "========>v : ", v
-                        # p "========>is_id_field : ", is_id_field
-                        # p "========>not_in_search_fields : ", not_in_search_fields
                         next if is_id_field || not_in_search_fields
-
-                        # next "COALESCE(lower(#{v}), '') LIKE '%#{arrangement[:keyword]}%'"
 
                         model = v.split('.').first.classify.constantize
                         column = model.columns_hash[v.split('.').last]
 
-                        p("========>column.type == :date : ", column.type == :date )
                         unless column.type.in?([:date, :datetime])
                           next "COALESCE(lower(#{v}), '') LIKE '%#{arrangement[:keyword]}%'"
                         end
 
                         keyword_is_date = arrangement[:keyword]&.match(RexyAdmin.date_regrex)
 
-                        p "========>keyword_is_date : ", keyword_is_date
                         if keyword_is_date
                           # 20-05-1999 => 1999-05-20
                           date = arrangement[:keyword].to_date
