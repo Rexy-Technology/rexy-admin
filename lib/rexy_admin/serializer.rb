@@ -9,8 +9,8 @@ require 'rexy_admin/serializer/select_string'
 require 'rexy_admin/serializer/validate_schema'
 require 'rexy_admin/serializer/my_error'
 
-EXCLUDE_SEARCH_STRING = %w[id created_at password].freeze
-EXCLUDE_KEYS_STRING = %w[password_digest created_at deleted_at].freeze
+EXCLUDE_SEARCH_STRING = %w[id password].freeze
+EXCLUDE_KEYS_STRING = %w[password_digest deleted_at].freeze
 EXCLUDE_QUERY_PARAMS = %w[page per_page order_by order].freeze
 
 module RexyAdmin
@@ -182,7 +182,6 @@ module RexyAdmin
       def arrangement
         order_by = @params[:order_by]&.strip&.downcase&.presence || ''
         order = @params[:order]&.upcase == 'ASCEND' ? 'ASC' : 'DESC'
-        # order_by = column_names.include?(order_by_param) ? order_by_param : 'created_at'
         {
           order: order,
           order_by: order_by,

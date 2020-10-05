@@ -11,8 +11,9 @@
 # rubocop:disable Style/Next
 # rubocop:disable BlockNesting
 
-EXCLUDE_SEARCH_STRING = %w[id created_at password].freeze
+EXCLUDE_SEARCH_STRING = %w[id password].freeze
 EXCLUDE_KEYS_STRING = %w[password_digest deleted_at].freeze
+SQL_DEFAULT_DATE_FORMAT = '%Y-%m-%d'
 module RexyAdmin
   module Query
     def set_params(params)
@@ -29,7 +30,6 @@ module RexyAdmin
     def arrangement
       order_by = @params[:order_by]&.strip&.downcase
       order = @params[:order]&.upcase == 'ASCEND' ? 'ASC' : 'DESC'
-      # order_by = column_names.include?(order_by_param) ? order_by_param : 'created_at'
       {
         order: order,
         order_by: order_by,
@@ -92,8 +92,8 @@ module RexyAdmin
     end
 
     def paginate_and_arrange_records records
-      p '======>search_string: ' , search_string
-      p '@index_search_fields: ' , @index_search_fields
+      # p '======>search_string: ' , search_string
+      # p '@index_search_fields: ' , @index_search_fields
       # p 'order_string: ' , order_string
       records = records.where(search_string).order(order_string).page(pagination[:page]).per(pagination[:per_page])
       [records, records.total_count]
@@ -215,29 +215,39 @@ module RexyAdmin
     end
 
     def search_string
+
+      
+      p "========>keys_array : ", keys_array
       search_string = keys_array.map do |v|
                         # Example: "materials.id", "materials.supplier_id"
                         is_id_field = (v.split('.').last == 'id' || v.last(3) == '_id')
                         not_in_search_fields = v.split('.').first == table_name && !v.split('.').last.to_sym.in?(@index_search_fields)
-                        # p "========>v.split('.').first : ", v.split('.').first
-                        # p "========>table_name : ", table_name
-                        # p "========>v.split('.').last : ", v.split('.').last
-                        # p "========>table_name.in?(@index_search_fields) : ", table_name.in?(@index_search_fields)
-                        unless is_id_field || not_in_search_fields
-                          "COALESCE(lower(#{v}), '') LIKE '%#{arrangement[:keyword]}%'"
+                        p "========>v : ", v
+                        p "========>is_id_field : ", is_id_field
+                        p "========>not_in_search_fields : ", not_in_search_fields
+                        next if is_id_field || not_in_search_fields
+
+                        # next "COALESCE(lower(#{v}), '') LIKE '%#{arrangement[:keyword]}%'"
+
+                        model = v.split('.').first.classify.constantize
+                        column = model.columns_hash[v.split('.').last]
+
+                        unless column.type == :date
+                          next "COALESCE(lower(#{v}), '') LIKE '%#{arrangement[:keyword]}%'"
+                        end
+
+                        keyword_is_date = arrangement[:keyword].match(RexyAdmin.date_regrex)
+
+                        p("========>keyword_is_date : ", keyword_is_date )
+                        if keyword_is_date
+                          # 20-05-1999 => 1999-05-20
+                          date = arrangement[:keyword].to_date
+                          date_string = date.strftime(SQL_DEFAULT_DATE_FORMAT)
+                          "COALESCE(lower(#{v}), '') LIKE '%#{date_string}%'"
                         end
                       end
       search_string.compact.join(' OR ')
     end
-
-    # def search_string
-    #   search_string = @index_search_fields.map do |v|
-    #                     unless v.in? EXCLUDE_SEARCH_STRING
-    #                       "COALESCE(lower(#{table_name}.#{v}), '') LIKE '%#{arrangement[:keyword]}%'"
-    #                     end
-    #                   end
-    #   search_string.compact.join(' OR ')
-    # end
 
     # Order
     def keys_array

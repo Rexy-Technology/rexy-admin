@@ -1,4 +1,3 @@
-# EXCLUDE_KEYS_STRING = %w[password_digest created_at deleted_at].freeze
 
 module RexyAdmin
   module Serializer

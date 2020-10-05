@@ -22,7 +22,8 @@ module RexyAdmin
     base.use_actions
   end
 
-  mattr_accessor :auth_model, :use_rexy_admin_login, :login_field
+  mattr_accessor :auth_model, :use_rexy_admin_login, :login_field, :date_regrex
   @@use_rexy_admin_login = false
   @@login_field = :email
+  @@date_regrex = nil
 end
