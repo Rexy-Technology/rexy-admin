@@ -42,7 +42,7 @@ module RexyAdmin
     end
 
     def key_is_valid?(model, key)
-      key_in_column_names?(model, key) || key_in_associations?(model, key)
+      key_in_column_names?(model, key) || key_in_associations?(model, key) || key_in_assigned_attribute?(model, key)
     end
 
     def key_in_column_names?(model, key)
@@ -57,6 +57,10 @@ module RexyAdmin
       has_many_names = model.reflect_on_all_associations(:has_many).map(&:name)
 
       key.to_sym.in?(has_many_names)
+    end
+
+    def key_in_assigned_attribute?(model, key)
+      model.new.respond_to?("#{key}=")
     end
 
     def associations(model)
