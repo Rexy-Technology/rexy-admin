@@ -42,6 +42,9 @@ module RexyAdmin
       
       raise ("action only accept these action types: #{@actions}") unless action.in? ACTIONS
 
+      # p "========>self : ", self
+      # p "========>action : ", action
+      # p "========>action.in?(%i[create update delete toggle]) : ", action.in?(%i[create update delete toggle])
       if action.in?(%i[create update delete toggle])
         set_mutation_actions(kwargs)
       else
@@ -54,6 +57,7 @@ module RexyAdmin
                              params_checker: nil,
                              command: nil,
                              toggle_field: :active)
+
       instance_variable_set("@#{action}_context", context)
       instance_variable_set("@#{action}_params_checker", params_checker)
       instance_variable_set("@#{action}_command", command)
@@ -115,6 +119,7 @@ module RexyAdmin
       params_checker = instance_variable_get("@#{action}_params_checker")
       context = instance_variable_get("@#{action}_context")
       custom_command  = instance_variable_get("@#{action}_command")
+
       default_action = "default_#{action}"
       [action, params_checker, context, custom_command, default_action]
     end
