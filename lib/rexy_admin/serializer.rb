@@ -185,11 +185,22 @@ module RexyAdmin
 
         after_action.call(*arguments)
       end
-
+      
       def formatted_hash_record
         return {} unless record.present?
         
-        FormatHashRecord.call(schema, model, record).result
+        formatted_hash_record = FormatHashRecord.call(schema, model, record).result
+        formatted_hash_record = filter_query_record_by_after_action(formatted_hash_record) if after_action.present?
+        formatted_hash_record
+      end
+
+      def filter_query_record_by_after_action(query_record)
+        total_parameters_count = after_action.arity
+
+        arguments = [query_record, params, query_params[:current_admin]]
+        arguments = arguments[0..total_parameters_count - 1]
+
+        after_action.call(*arguments)
       end
 
       def pagination

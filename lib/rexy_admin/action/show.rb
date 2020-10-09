@@ -16,7 +16,7 @@ module RexyAdmin
         context: @show_context,
         params_checker: @show_params_checker,
         after_query: @show_after_query.presence || default_show_after_query,
-        after_action: @show_after_action.presence || default_index_after_action,
+        after_action: @show_after_action.presence || default_show_after_action,
         many: false,
         paginate: false,
         params: params,
@@ -29,9 +29,9 @@ module RexyAdmin
       end
     end
 
-    def default_index_after_action
-      lambda do |records, params|
-        records
+    def default_show_after_action
+      lambda do |record, params|
+        record
       end
     end
 
