@@ -21,7 +21,6 @@ class RexyAdminContrains
 
     string_model = request.path.split('/')[2]
 
-    p "========>string_model : ", string_model
     return false if string_model == CUSTOM_PREFIX_URL
       
     model = request.path.split('/')[2].classify&.constantize 
