@@ -42,6 +42,13 @@ module RexyAdmin
         record_to_h(record).each do |key, value|
           serialized_record[key.to_sym] = value if key.in?(fields) || key.to_s.in?(fields)
         end
+
+        # allow serialize getter method
+        methods = fields - record.attributes.keys
+        methods.each do |m|
+          serialized_record[m.to_sym] = record.send(m) if record.respond_to?(m.to_s)
+        end
+        
         serialized_record
       end
 
