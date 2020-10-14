@@ -126,7 +126,7 @@ module RexyAdmin
 
     def execute_custom_command(command, params)
       cmd = command.call(params)
-
+      return {status: 'FAIL', result: cmd.errors} if cmd.failure?
       {status: 'OK', result: cmd.result}
     end
 
