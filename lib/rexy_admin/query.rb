@@ -82,7 +82,7 @@ module RexyAdmin
     end
 
     def route(params)
-      params[:path_request].split('/').last
+      params[:request_path].split('/').last
     end
 
     def query(route)

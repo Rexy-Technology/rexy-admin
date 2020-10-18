@@ -51,7 +51,7 @@ module RexyAdmin
       instance_variable_set("@#{action}_params_checker", params_checker)
       instance_variable_set("@#{action}_command", command)
 
-      instance_variable_set("@toggle_field", toggle_field) if action == :toggle && column_names.map(&:to_sym).include?(toggle_field)
+      instance_variable_set('@toggle_field', toggle_field) if action == :toggle && column_names.map(&:to_sym).include?(toggle_field)
     end
 
     def set_query_actions(action:,
@@ -95,8 +95,9 @@ module RexyAdmin
         params = params_checker_cmd.result
       end
 
-      custom_command.present? ? execute_custom_command(custom_command, params)
-                              : execute_default_action(default_action, params)
+      return execute_custom_command(custom_command, params) if custom_command.present?
+
+      execute_default_action(default_action, params)
     end
 
     def action_variables(action)
@@ -115,6 +116,7 @@ module RexyAdmin
     def execute_custom_command(command, params)
       cmd = command.call(params)
       return { status: 'FAIL', result: cmd.errors } if cmd.failure?
+
       { status: 'OK', result: cmd.result }
     end
 

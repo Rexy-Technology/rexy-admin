@@ -15,7 +15,9 @@ class RexyAdminController < ActionController::Base
   end
 
   def authenticate
-    render json: { authentication: 'Not Authorized.' }, status: 401 unless admin_token.present? && current_admin.present?
+    unless admin_token.present? && current_admin.present?
+      render json: { authentication: 'Not Authorized.' }, status: 401
+    end
   end
 
   def admin_token
@@ -62,22 +64,22 @@ class RexyAdminController < ActionController::Base
 
   # Get actions
   def show
-    result = model.rexy_admin_show(record_id, (params.merge(current_admin: current_admin).permit!))
+    result = model.rexy_admin_show(record_id, params.merge(current_admin: current_admin).permit!)
     render_json(result)
   end
 
   def new
-    result = model.rexy_admin_get_form_data((params.merge(current_admin: current_admin).permit!))
+    result = model.rexy_admin_get_form_data(params.merge(current_admin: current_admin).permit!)
     render_json(result)
   end
 
   def query
-    result = model.rexy_admin_query(params.merge(current_admin: current_admin, path_request: path_request).permit!)
+    result = model.rexy_admin_query(params.merge(current_admin: current_admin, request_path: request_path).permit!)
     render_json(result)
   end
 
   def index
-    result = model.rexy_admin_index((params.merge(current_admin: current_admin).permit!))
+    result = model.rexy_admin_index(params.merge(current_admin: current_admin).permit!)
     render_json(result)
   end
 
@@ -87,59 +89,65 @@ class RexyAdminController < ActionController::Base
   end
 
   def toggle_active
-    result = model.rexy_admin_toggle(record_id, (params.merge(current_admin: current_admin).permit!))
+    result = model.rexy_admin_toggle(record_id, params.merge(current_admin: current_admin).permit!)
     render_json(result)
   end
 
   def update
-    result = model.rexy_admin_update(record_id, (params.merge(current_admin: current_admin).permit!))
+    result = model.rexy_admin_update(record_id, params.merge(current_admin: current_admin).permit!)
     render_json(result)
   end
 
   def delete
-    result = model.rexy_admin_delete(record_id, (params.merge(current_admin: current_admin).permit!))
+    result = model.rexy_admin_delete(record_id, params.merge(current_admin: current_admin).permit!)
     render_json(result)
   end
-  
+
   private
-  def path_request
-    @path_request = request.path
+
+  def request_path
+    @request_path = request.path
   end
 
   def model
-    # @model ||= path_request.split('/')
+    # @model ||= request_path.split('/')
     #                        .reject { |e| e.match?(/^\d+$|edit|new/) || e.blank? }
     #                        .last
     #                        .classify
     #                        .constantize
 
-    @model ||= path_request.split('/')[2].classify&.constantize
+    @model ||= request_path.split('/')[2].classify&.constantize
   end
 
   def record_id
-    @record_id ||= path_request.split('/')\
+    @record_id ||= request_path.split('/')\
                                .reject { |e| e.match?(/^edit|new/) || e.blank? }\
                                .last\
                                .to_i
   end
 
   def paths
-    path = request.path
-    @paths ||= path.split('/')
+    @paths ||= request_path.split('/')
   end
 
   def render_json(result)
-    result[:status] == 'OK' ? render(json: result[:result])
-                            : render(json: errors(result), status: 422)
+    return render(json: result[:result]) if result[:status] == 'OK'
+
+    render(json: get_errors(result), status: 422)
   end
 
-  def errors(result)
+  def get_errors(result)
+    unless result[:result].is_a?(String)
+      return {
+        errors: result[:result][:errors][0]
+      }
+    end
+
     {
-      "errors": result[:result].is_a?(String) ? {
-        "message": result[:result],
-        "details": {}
-      } : result[:result][:errors][0]
+      errors: {
+        message: result[:result],
+        details: {}
+      }
     }
   end
-
-end 
+end

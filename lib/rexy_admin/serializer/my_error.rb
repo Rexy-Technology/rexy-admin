@@ -4,7 +4,7 @@ module RexyAdmin
   module Serializer
     class MyError < StandardError
       def initialize(message)
-          super(message)
+        super(message)
       end
     end
   end

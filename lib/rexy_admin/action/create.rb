@@ -9,7 +9,7 @@ module RexyAdmin
       execute_action(params, action)
     end
 
-    def default_create params
+    def default_create(params)
       # params = RexyAdmin::FilterParams.call(self, params).result
       params = RexyAdmin::FilterParams.call(
         model: self,
