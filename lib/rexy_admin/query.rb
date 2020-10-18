@@ -47,13 +47,13 @@ module RexyAdmin
 
       query = query(route)
       cmd = query_cmd(params, query)
-      return {status: 'FAIL', result: cmd.errors} if cmd.failure?
+      return { status: 'FAIL', result: cmd.errors } if cmd.failure?
       
       records = cmd.result[:records]
       pagination = cmd.result[:pagination]
       records = query[:after_action].call(records, params) if query[:after_action].present?
       
-      {status: 'OK', result: {
+      { status: 'OK', result: {
         records: records,
         pagination: pagination
       }}

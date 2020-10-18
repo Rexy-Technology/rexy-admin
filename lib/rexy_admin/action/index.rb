@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 module RexyAdmin
   module Action
     def rexy_admin_index(params = {})
       raise "Action index is not set in model #{model_name} yet." unless :index.in? @actions
 
       cmd = index_cmd(params)
-      return {status: 'FAIL', result: cmd.errors} if cmd.failure?
-      
-      {status: 'OK', result: cmd.result}
+      return { status: 'FAIL', result: cmd.errors } if cmd.failure?
+
+      { status: 'OK', result: cmd.result }
     end
 
     def index_cmd(params)
@@ -18,7 +20,7 @@ module RexyAdmin
         after_action: @index_after_action.presence || default_index_after_action,
         many: true,
         paginate: @index_paginate,
-        params: params,
+        params: params
        )
     end
 
@@ -33,6 +35,5 @@ module RexyAdmin
         records
       end
     end
-
   end
 end

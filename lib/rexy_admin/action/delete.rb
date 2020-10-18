@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 module RexyAdmin
   module Action
     def rexy_admin_delete(id, params = {})
       action = :delete
-      raise "Action #{action.to_s} is not set in model #{model_name} yet." unless action.in? @actions
-      
+      raise "Action #{action} is not set in model #{model_name} yet." unless action.in? @actions
+
       # Create body param "ids" if not exist in JSON body
       params[:ids] = [] unless params[:ids].present?
       # Push path variable "id" to ids
@@ -19,10 +21,15 @@ module RexyAdmin
 
     def default_delete params
       records = where(id: params[:ids])
-      return {status: 'OK', result: {status: 'OK'}} if params[:ids].count == records.count && records.destroy_all
 
-      {status: 'FAIL', result: "#{model_name.human} not exist."}
+      all_ids_exist = params[:ids].count == records.count
+      destroy_success = records.destroy_all
+
+      if all_ids_exist && destroy_success
+        return { status: 'OK', result: { status: 'OK' } }
+      end
+
+      { status: 'FAIL', result: "#{model_name.human} not exist." }
     end
-
   end
 end

@@ -5,9 +5,9 @@ module RexyAdmin
       p 'show11'
       params.merge!(id: id)
       cmd = show_cmd(params)
-      return {status: 'FAIL', result: cmd.errors} if cmd.failure?
+      return { status: 'FAIL', result: cmd.errors } if cmd.failure?
       
-      {status: 'OK', result: cmd.result}
+      { status: 'OK', result: cmd.result }
     end
 
     def show_cmd(params)

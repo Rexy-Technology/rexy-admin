@@ -1,16 +1,5 @@
 # frozen_string_literal: true
 
-# rubocop:disable AbcSize
-# rubocop:disable MethodLength
-# rubocop:disable PerceivedComplexity
-# rubocop:disable CyclomaticComplexity
-# rubocop:disable ModuleLength
-# rubocop:disable HandleExceptions, BlockLength
-# rubocop:disable EvalWithLocation, Eval
-# rubocop:disable ParameterLists
-# rubocop:disable Style/Next
-# rubocop:disable BlockNesting
-
 require 'rexy_admin/action/create'
 require 'rexy_admin/action/update'
 require 'rexy_admin/action/show'
@@ -22,15 +11,15 @@ require 'rexy_admin/action/get_form_data'
 module RexyAdmin
   module Action
     # Set action
-    def use_actions only: [], except: []
-      raise ("Please choose only one in two options only or except") if only.present? && except.present?
-      
+    def use_actions(only: [], except: [])
+      raise ('Please choose only one in two options only or except') if only.present? && except.present?
+
       total_all_actions = ACTIONS.count
 
       actions = except.present? ? (ACTIONS - except) : (only.presence || ACTIONS)
       actions = actions.uniq
-      raise ("use_actions only accept #{total_all_actions} action #{"type".pluralize(total_all_actions)}: #{ACTIONS}") unless actions.all?{|a| a.in? ACTIONS}
-      
+      raise ("use_actions only accept #{total_all_actions} action #{'type'.pluralize(total_all_actions)}: #{ACTIONS}") unless actions.all?{|a| a.in? ACTIONS}
+
       @actions = actions || ACTIONS
       @actions.each do |action|
         set_action action: action
@@ -39,8 +28,8 @@ module RexyAdmin
 
     def set_action(*args, **kwargs)
       action = kwargs[:action]
-      
-      raise ("action only accept these action types: #{@actions}") unless action.in? ACTIONS
+
+      raise("action only accept these action types: #{@actions}") unless action.in? ACTIONS
 
       # p "========>self : ", self
       # p "========>action : ", action
@@ -52,7 +41,7 @@ module RexyAdmin
       end
     end
 
-    def set_mutation_actions(action: ,
+    def set_mutation_actions(action:,
                              context: {},
                              params_checker: nil,
                              command: nil,
@@ -66,7 +55,6 @@ module RexyAdmin
     end
 
     def set_query_actions(action:,
-                          schema: [],
                           associations: [],
                           context: {},
                           params_checker: nil,
@@ -77,7 +65,7 @@ module RexyAdmin
                           after_action: nil,
                           paginate: true)
       fields = (fields&.uniq&.presence || column_names.map(&:to_sym) - exclude_fields) - EXCLUDE_KEYS_STRING
-      search_fields = search_fields&.uniq&.presence || fields           
+      search_fields = search_fields&.uniq&.presence || fields
 
       schema = {
         model: self,
@@ -86,7 +74,7 @@ module RexyAdmin
         associations: associations,
         has_many: false,
         in_has_many_branch: false
-      }             
+      }
 
       instance_variable_set("@#{action}_context", context)
       instance_variable_set("@#{action}_params_checker", params_checker)
@@ -102,7 +90,7 @@ module RexyAdmin
 
       if params_checker.present?
         params_checker_cmd = params_checker.call(params: params, context: context.merge(current_admin: params["current_admin"]))
-        return {status: 'FAIL', result: params_checker_cmd.errors} if params_checker_cmd.failure?
+        return { status: 'FAIL', result: params_checker_cmd.errors } if params_checker_cmd.failure?
 
         params = params_checker_cmd.result
       end
@@ -118,7 +106,7 @@ module RexyAdmin
       #  create_custom_command, default_create)
       params_checker = instance_variable_get("@#{action}_params_checker")
       context = instance_variable_get("@#{action}_context")
-      custom_command  = instance_variable_get("@#{action}_command")
+      custom_command = instance_variable_get("@#{action}_command")
 
       default_action = "default_#{action}"
       [action, params_checker, context, custom_command, default_action]
@@ -126,8 +114,8 @@ module RexyAdmin
 
     def execute_custom_command(command, params)
       cmd = command.call(params)
-      return {status: 'FAIL', result: cmd.errors} if cmd.failure?
-      {status: 'OK', result: cmd.result}
+      return { status: 'FAIL', result: cmd.errors } if cmd.failure?
+      { status: 'OK', result: cmd.result }
     end
 
     def execute_default_action(command, params)
@@ -135,4 +123,3 @@ module RexyAdmin
     end
   end
 end
-

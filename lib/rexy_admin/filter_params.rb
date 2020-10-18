@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module RexyAdmin
   class FilterParams
     prepend SimpleCommand
@@ -27,15 +29,15 @@ module RexyAdmin
         value = filter_array(key, value) if param_may_contains_nested_object
 
         key = param_is_nested_object ? "#{key}_attributes" : key.to_sym
-        
-        hash[key] = value 
+
+        hash[key] = value
       end
     end
 
     def filter_array(key, array)
       array.map do |param|
         next param unless param.is_a?(Hash)
-        
+
         model = key.to_s.classify.constantize
         filter_hash(model, param)
       end
@@ -67,14 +69,13 @@ module RexyAdmin
       belongs_to_names = model.reflect_on_all_associations(:belongs_to).map(&:name)
       has_one_names = model.reflect_on_all_associations(:has_one).map(&:name)
       has_many_names = model.reflect_on_all_associations(:has_many).map(&:name)
-      
+
       (belongs_to_names + has_one_names + has_many_names).uniq
     end
 
     attr_accessor :params, :model
   end
 end
-
 
 # arr > hash > params
 # author: {
