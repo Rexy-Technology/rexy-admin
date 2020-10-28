@@ -34,8 +34,6 @@ module RexyAdmin
 
       # Current hash
       def get_data(record, parent_record, parent_hash, association)
-        model_name = association[:model].model_name.singular
-
         # has many ? [{}, {}, ...] : {}
         association[:has_many] ? to_hash_array(record, parent_record, parent_hash, association)\
                               : to_hash(record, parent_record, parent_hash, association)
