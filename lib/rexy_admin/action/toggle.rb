@@ -10,7 +10,7 @@ module RexyAdmin
 
     def default_toggle(params)
       record = @toggle_custom_query.find_by_id(params[:id])
-      return {status: 'OK', result: {id: params[:id]}} if record.present? && record.toggle(:active) && record.save
+      return {status: 'OK', result: {id: params[:id]}} if record.present? && record.toggle(@toggle_field.presence || :active) && record.save
       
       {status: 'FAIL', result: "#{model_name.human} not exist."}
     end
