@@ -185,7 +185,7 @@ module RexyAdmin
         {
           order: order,
           order_by: order_by,
-          keyword: @params[:keyword]
+          keyword: I18n.transliterate(@params[:keyword])
         }
         
       end
