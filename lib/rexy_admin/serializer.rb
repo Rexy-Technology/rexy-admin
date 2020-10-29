@@ -222,10 +222,11 @@ module RexyAdmin
         order_by = @params[:order_by]&.strip&.downcase&.presence || ''
         order = @params[:order]&.upcase == 'ASCEND' ? 'ASC' : 'DESC'
         # order_by = column_names.include?(order_by_param) ? order_by_param : 'created_at'
+
         {
           order: order,
           order_by: order_by,
-          keyword: @params[:keyword]
+          keyword: I18n.transliterate(@params[:keyword])
         }
       end
 
