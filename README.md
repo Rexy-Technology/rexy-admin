@@ -141,7 +141,7 @@ end
   ```
 
 ### 2. Create a user and use jwt encode to get token
-  Because we used model User as the auth model(in file config/initializers/rexy_admin.rb),now we will create a by rails console
+  Because we used model User as the auth model(in file config/initializers/rexy_admin.rb),now we will create a user by rails console
   ```
     user = User.create(email: 'ted@rexy.tech', name: 'ted', age: 
     21)
@@ -160,7 +160,7 @@ end
   ```
   2. Define actions that you want to use
      * there are currently 6 actions: create, update, delete, show, toggle, index
-     * if we want to only use rexyadmin for 3 actions(create, update, delete), we can define actions like this
+     * if you want to only use rexyadmin for 3 actions(create, update, delete), you can define actions like this
   ```ruby
     class Post < ApplicationRecord
        has_many :comments
@@ -170,7 +170,7 @@ end
        use_actions only: %i[create update delete]
      end
   ```
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* we can use :all if we want to use all actions
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* you can use :all if you want to use all actions
   ```ruby
     class Post < ApplicationRecord
        has_many :comments
@@ -180,7 +180,7 @@ end
        use_actions only: :all
      end
   ```
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* or if we want to use all actions, except delete, we can define actions like this
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* or if you want to use all actions, except delete, you can define actions like this
   ```ruby
     class Post < ApplicationRecord
        has_many :comments
@@ -190,7 +190,7 @@ end
        use_actions except: %i[delete]
      end
   ```
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* for simplicity, we will only use action :create for now
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* for simplicity, you will only use action :create for now
   ```ruby
     class Post < ApplicationRecord
        has_many :comments
@@ -560,3 +560,4 @@ Contribution directions go here.
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
 ## Usage example
 For more detail, you can clone [this](https://gitlab.com/rexy.tech/demorexyadmin) repo and examine the sample project.
+****
