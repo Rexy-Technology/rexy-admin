@@ -3,7 +3,7 @@
 
 # frozen_string_literal: true
 
-CUSTOM_PREFIX_URL = 'extra-gate'
+CUSTOM_PREFIX_URL = 'extra-gate'.freeze
 class RexyAdminContrains
   def matches?(request)
     # will fix this if add multiple models (users/posts/comments)
@@ -23,8 +23,8 @@ class RexyAdminContrains
     string_model = request.path.split('/')[2]
 
     return false if string_model == CUSTOM_PREFIX_URL
-      
-    model = request.path.split('/')[2].classify&.constantize 
+
+    model = request.path.split('/')[2].classify&.constantize
     model&.included_modules&.include?(RexyAdmin)
   rescue => e
     false
