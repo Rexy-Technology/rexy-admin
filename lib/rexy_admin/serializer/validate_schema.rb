@@ -28,7 +28,6 @@ module RexyAdmin
         raise "Associations must be a array of hashes." unless association.is_a?(Hash)
         raise "Model is required." unless association.key?(:model)
         raise("#{association[:model].to_s} not having any relation with #{parent_model.to_s}.") unless
-        p "========>Helper.belongs_to_or_has_one_relate_model_names(parent_model): ", Helper.belongs_to_or_has_one_relate_model_names(parent_model)
           (
             association[:model].model_name.singular.to_sym.in?(Helper.belongs_to_or_has_one_relate_model_names(parent_model)) ||
             association[:model].model_name.plural.to_sym.in?(Helper.has_many_model_names(parent_model))
