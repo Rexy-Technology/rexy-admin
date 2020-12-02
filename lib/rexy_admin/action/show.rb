@@ -7,6 +7,7 @@
 module RexyAdmin
   module Action
     def rexy_admin_show(id, params = {})
+      p "========>params111 : ", params
       raise "Action show is not set in model #{model_name} yet." unless :show.in? @actions
       params.merge!(id: id)
       return custom_show(params) if @show_params_checker.present?
@@ -24,6 +25,7 @@ module RexyAdmin
       @show_associations = check_if_associations_valid self, @show_associations
       record = show_add_associations_fields_to_records(@show_associations, record)
       
+      p "========>params2 : ", params
       record  = @show_after_action.call(record, params[:current_admin], params) if record.present? && @show_after_action.present? 
       {status: 'OK', result: record}
     end
