@@ -32,7 +32,7 @@ module RexyAdmin
       params_checker_cmd = params_checker.call(params: params, context: context.merge(current_admin: params["current_admin"]))
       return {status: 'FAIL', result: params_checker_cmd.errors} if params_checker_cmd.failure?
       
-      result = params_checker_cmd.result.merge(current_admin: params["current_admin"])
+      result = params_checker_cmd.result
 
       return custom_command(command, result) if command.present?
         
