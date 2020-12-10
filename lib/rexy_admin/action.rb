@@ -36,7 +36,7 @@ module RexyAdmin
 
       return custom_command(command, result) if command.present?
         
-      send default_action, result
+      send default_action, result.merge(current_admin: params["current_admin"])
     end
 
     def custom_action_without_params_checker params, command , default_action
