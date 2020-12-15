@@ -7,7 +7,6 @@ class RexyAdminController < ActionController::Base
 
   def append_info_to_payload(payload)
     super
-    binding.pry
     if payload[:status] == 422
       payload[:errors] = JSON.parse(@_response_body[0])["errors"]
     end
