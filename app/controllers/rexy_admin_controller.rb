@@ -5,6 +5,15 @@ class RexyAdminController < ActionController::Base
   skip_before_action :verify_authenticity_token
   before_action :authenticate, except: [:login]
 
+  def append_info_to_payload(payload)
+    super
+    binding.pry
+    if payload[:status] == 422
+      payload[:errors] = JSON.parse(@_response_body[0])["errors"]
+    end
+    # render json: cmd.errors, status: 422
+  end
+
   def login
     cmd = AuthenticateAdmin.call(params)
     if cmd.success?
