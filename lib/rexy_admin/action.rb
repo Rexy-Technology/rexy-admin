@@ -26,14 +26,11 @@ module RexyAdmin
       end
     end
 
-    def set_action(*args, **kwargs)
+    def set_action(**kwargs)
       action = kwargs[:action]
 
       raise("action only accept these action types: #{@actions}") unless action.in? ACTIONS
 
-      # p "========>self : ", self
-      # p "========>action : ", action
-      # p "========>action.in?(%i[create update delete toggle]) : ", action.in?(%i[create update delete toggle])
       if action.in?(%i[create update delete toggle])
         set_mutation_actions(kwargs)
       else

@@ -2,11 +2,11 @@ module RexyAdmin
   module Action
     def rexy_admin_show(id, params = {})
       raise "Action show is not set in model #{model_name} yet." unless :show.in? @actions
-      p 'show11'
+
       params.merge!(id: id)
       cmd = show_cmd(params)
       return { status: 'FAIL', result: cmd.errors } if cmd.failure?
-      
+
       { status: 'OK', result: cmd.result }
     end
 
