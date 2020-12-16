@@ -9,8 +9,8 @@ require 'rexy_admin/serializer/select_string'
 require 'rexy_admin/serializer/validate_schema'
 require 'rexy_admin/serializer/my_error'
 
-EXCLUDE_SEARCH_STRING = %w[id password].freeze
-EXCLUDE_KEYS_STRING = %w[password_digest deleted_at].freeze
+# EXCLUDE_SEARCH_STRING = %w[id password].freeze
+# EXCLUDE_KEYS_STRING = %w[password_digest deleted_at].freeze
 EXCLUDE_QUERY_PARAMS = %w[page per_page order_by order].freeze
 
 module RexyAdmin
