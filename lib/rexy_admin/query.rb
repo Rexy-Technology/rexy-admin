@@ -54,9 +54,9 @@ module RexyAdmin
 
     def records_filtered_by_default
       @index_associations = check_if_associations_valid self, @index_associations
-      # p '@index_associations: ' , @index_associations
-      p 'joins: ' , index_join_array
-      p 'select: ' , index_select_string
+      # # p '@index_associations: ' , @index_associations
+      # p 'joins: ' , index_join_array
+      # p 'select: ' , index_select_string
       records = joins(index_join_array).select(index_select_string)
       records = @index_after_query.call(records, @params[:current_admin], @params) if @index_after_query.present?
       records, total_count = paginate_and_arrange_records records
@@ -92,9 +92,9 @@ module RexyAdmin
     end
 
     def paginate_and_arrange_records records
-      # p '======>search_string: ' , search_string
-      # p '@index_search_fields: ' , @index_search_fields
-      # p 'order_string: ' , order_string
+      # # p '======>search_string: ' , search_string
+      # # p '@index_search_fields: ' , @index_search_fields
+      # # p 'order_string: ' , order_string
       records = records.where(search_string).order(order_string).page(pagination[:page]).per(pagination[:per_page])
       [records, records.total_count]
     end
