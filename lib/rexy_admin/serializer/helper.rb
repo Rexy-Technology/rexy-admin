@@ -28,13 +28,13 @@ module RexyAdmin
 
         model_name = child_model.model_name.singular.to_sym
         belongs_to_or_has_one_relate_model_names = belongs_to_or_has_one_relate_model_names(parent_model)
-        return !model_name.in?(belongs_to_or_has_one_relate_model_names)
+        !model_name.in?(belongs_to_or_has_one_relate_model_names)
       end
 
       def serialize records, fields
         return serialize_record(records, fields) unless records.is_a? Enumerable
 
-        records.map { |record| serialize_record(record, fields) } 
+        records.map { |record| serialize_record(record, fields) }
       end
 
       def serialize_record record, fields
@@ -48,7 +48,7 @@ module RexyAdmin
         methods.each do |m|
           serialized_record[m.to_sym] = record.send(m) if record.respond_to?(m.to_s)
         end
-        
+
         serialized_record
       end
 

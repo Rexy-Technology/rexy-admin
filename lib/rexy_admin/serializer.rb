@@ -157,7 +157,7 @@ module RexyAdmin
         end
       end
 
-      def join_and_include_array 
+      def join_and_include_array
         JoinAndIncludeArray.call(schema, model).result
       end
 
