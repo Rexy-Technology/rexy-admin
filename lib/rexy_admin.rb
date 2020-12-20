@@ -13,7 +13,7 @@ module RexyAdmin
     # base.set_admin_table_columns
     # base.extend(Query)
     base.extend(Json)
-    # base.extend(Action)
+    base.extend(Action)
     base.extend(Query)
     # base.set_custom_filters
     # base.set_actions
