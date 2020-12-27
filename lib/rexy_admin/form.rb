@@ -44,7 +44,10 @@ module RexyAdmin
     end
 
     def form_paginate_and_arrange_records records
-      records = records.where(form_search_string).page(pagination[:page]).per(pagination[:per_page])
+      records =
+        records.where(form_search_string, { keyword: "%#{arrangement[:keyword]}%" })
+               .page(pagination[:page])
+               .per(pagination[:per_page])
       [records, records.total_count]
     end
 
@@ -52,7 +55,7 @@ module RexyAdmin
     def form_search_string
       search_string = @form_search_fields.map do |v|
                         unless v.in? EXCLUDE_SEARCH_STRING
-                          "COALESCE(lower(#{table_name}.#{v}), '') LIKE '%#{arrangement[:keyword]}%'"
+                          "COALESCE(lower(#{table_name}.#{v}), '') LIKE :keyword"
                         end
                       end
       search_string.compact.join(' OR ')

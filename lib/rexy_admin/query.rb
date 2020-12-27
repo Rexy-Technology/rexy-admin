@@ -91,11 +91,30 @@ module RexyAdmin
       }
     end
 
+    def date_string
+      return '' unless keyword_is_date?
+
+      # 20-05-1999 => 1999-05-20
+      date = arrangement[:keyword].to_date
+      date.strftime(SQL_DEFAULT_DATE_FORMAT)
+    end
+
     def paginate_and_arrange_records records
       # # p '======>search_string: ' , search_string
       # # p '@index_search_fields: ' , @index_search_fields
       # # p 'order_string: ' , order_string
-      records = records.where(search_string).order(order_string).page(pagination[:page]).per(pagination[:per_page])
+
+      records =
+        records.where(
+                  search_string,
+                  {
+                    keyword: "%#{arrangement[:keyword]}%",
+                    date_string: "%#{date_string}%"
+                  }
+                )
+               .order(order_string)
+               .page(pagination[:page])
+               .per(pagination[:per_page])
       [records, records.total_count]
     end
 
@@ -225,19 +244,18 @@ module RexyAdmin
                         column = model.columns_hash[v.split('.').last]
 
                         unless column.type.in?([:date, :datetime])
-                          next "COALESCE(lower(#{v}), '') LIKE '%#{arrangement[:keyword]}%'"
+                          next "COALESCE(lower(#{v}), '') LIKE :keyword"
                         end
 
-                        keyword_is_date = arrangement[:keyword]&.match(RexyAdmin.date_regrex)
-
-                        if keyword_is_date
-                          # 20-05-1999 => 1999-05-20
-                          date = arrangement[:keyword].to_date
-                          date_string = date.strftime(SQL_DEFAULT_DATE_FORMAT)
-                          "COALESCE(lower(#{v}), '') LIKE '%#{date_string}%'"
+                        if keyword_is_date?
+                          "COALESCE(lower(#{v}), '') LIKE :date_string"
                         end
                       end
       search_string.compact.join(' OR ')
+    end
+
+    def keyword_is_date?
+      arrangement[:keyword]&.match(RexyAdmin.date_regrex)
     end
 
     # Order
