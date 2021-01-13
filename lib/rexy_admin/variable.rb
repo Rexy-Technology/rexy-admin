@@ -133,6 +133,25 @@ module RexyAdmin
         @general_auth_query = general_auth_query
     end
 
+    def get_action(request)
+      if request.get?
+        path = request.path
+        paths = path.split('/')
+
+        return 'show' if paths.last == 'edit'
+        return 'get_form_data' if paths.last == 'new'
+        return 'form' if paths.last == 'form'
+      elsif request.post?
+        'create'
+      elsif request.patch?
+        'toggle_active'
+      elsif request.put?
+        'update'
+      elsif request.delete?
+        'delete'
+      end
+    end
+
     def get_auth_query(request)
       # @auth_query ||= RexyAdmin.auth_model.where('action')
       action = get_action(request)

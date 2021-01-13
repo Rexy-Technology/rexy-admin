@@ -33,7 +33,7 @@ class RexyAdminController < ActionController::Base
 
   def catch_all
     if request.get?
-      get_action
+      get_get_action
     elsif request.post?
       create
     elsif request.patch?
@@ -52,7 +52,7 @@ class RexyAdminController < ActionController::Base
   # }, status: 422
   end
 
-  def get_action
+  def get_get_action
     if paths.last == 'edit'
       show
     elsif paths.last == 'new'
