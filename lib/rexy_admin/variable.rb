@@ -130,7 +130,7 @@ module RexyAdmin
     end
 
     def set_auth_query general_auth_query
-        @general_auth_query = general_auth_query
+      @general_auth_query = general_auth_query
     end
 
     def get_action(request)
@@ -154,9 +154,14 @@ module RexyAdmin
 
     def get_auth_query(request)
       # @auth_query ||= RexyAdmin.auth_model.where('action')
+      p "========>request : ", request
       action = get_action(request)
+      p("========>action : ", action)
       action_auth_query = instance_variable_get("@#{action}_auth_query")
+      p("========>action_auth_query : ", action_auth_query)
 
+      p("========>action_auth_query.presence : ", action_auth_query.presence)
+      p("========>@general_auth_query : ", @general_auth_query)
       action_auth_query.presence ||
         @general_auth_query || 
         RexyAdmin.auth_model.where('')
