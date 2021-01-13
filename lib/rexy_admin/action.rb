@@ -42,11 +42,14 @@ module RexyAdmin
                              context: {},
                              params_checker: nil,
                              command: nil,
-                             toggle_field: :active)
+                             toggle_field: :active,
+                             auth_query: nil
+                             )
 
       instance_variable_set("@#{action}_context", context)
       instance_variable_set("@#{action}_params_checker", params_checker)
       instance_variable_set("@#{action}_command", command)
+      instance_variable_set("@#{action}_auth_query", auth_query)
 
       instance_variable_set('@toggle_field', toggle_field) if action == :toggle && column_names.map(&:to_sym).include?(toggle_field)
     end
@@ -60,7 +63,9 @@ module RexyAdmin
                           exclude_fields: [],
                           after_query: nil,
                           after_action: nil,
-                          paginate: true)
+                          paginate: true,
+                          auth_query: nil
+                          )
       fields = (fields&.uniq&.presence || column_names.map(&:to_sym) - exclude_fields) - EXCLUDE_KEYS_STRING
       search_fields = search_fields&.uniq&.presence || fields
 
@@ -79,6 +84,7 @@ module RexyAdmin
       instance_variable_set("@#{action}_after_query", after_query)
       instance_variable_set("@#{action}_after_action", after_action)
       instance_variable_set("@#{action}_paginate", paginate)
+      instance_variable_set("@#{action}_auth_query", auth_query)
     end
 
     # Custom

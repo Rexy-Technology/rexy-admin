@@ -128,5 +128,20 @@ module RexyAdmin
     def auth_query
       @auth_query ||= RexyAdmin.auth_model.where('')
     end
+
+    def set_auth_query general_auth_query
+        @general_auth_query = general_auth_query
+    end
+
+    def get_auth_query(request)
+      # @auth_query ||= RexyAdmin.auth_model.where('action')
+      action = get_action(request)
+      action_auth_query = instance_variable_get("@#{action}_auth_query")
+
+      action_auth_query.presence ||
+        @general_auth_query || 
+        RexyAdmin.auth_model.where('')
+    end
+
   end
 end
