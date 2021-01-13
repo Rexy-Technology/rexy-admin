@@ -141,6 +141,7 @@ module RexyAdmin
         return 'show' if paths.last == 'edit'
         return 'get_form_data' if paths.last == 'new'
         return 'form' if paths.last == 'form'
+        return 'index'
       elsif request.post?
         'create'
       elsif request.patch?
@@ -154,17 +155,12 @@ module RexyAdmin
 
     def get_auth_query(request)
       # @auth_query ||= RexyAdmin.auth_model.where('action')
-      p "========>request : ", request
       action = get_action(request)
-      p("========>action : ", action)
       action_auth_query = instance_variable_get("@#{action}_auth_query")
-      p("========>action_auth_query : ", action_auth_query)
 
-      p("========>action_auth_query.presence : ", action_auth_query.presence)
-      p("========>@general_auth_query : ", @general_auth_query)
-      action_auth_query.presence ||
-        @general_auth_query || 
-        RexyAdmin.auth_model.where('')
+      return action_auth_query unless action_auth_query.nil?
+
+      @general_auth_query || RexyAdmin.auth_model.where('')
     end
 
   end
