@@ -121,10 +121,6 @@ module RexyAdmin
       @formdata
     end
 
-    def set_auth_query auth_query
-      @auth_query = auth_query
-    end
-
     def auth_query
       @auth_query ||= RexyAdmin.auth_model.where('')
     end
