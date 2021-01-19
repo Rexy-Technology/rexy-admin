@@ -38,7 +38,7 @@ class RexyAdminController < ActionController::Base
     elsif request.post?
       create
     elsif request.patch?
-      toggle_active
+      toggle
     elsif request.put?
       update
     elsif request.delete?
@@ -91,7 +91,7 @@ class RexyAdminController < ActionController::Base
     render_json(result)
   end
 
-  def toggle_active
+  def toggle
     result = model.rexy_admin_toggle(record_id, params.merge(current_admin: current_admin).permit!)
     render_json(result)
   end
@@ -165,7 +165,7 @@ class RexyAdminController < ActionController::Base
     elsif request.post?
       'create'
     elsif request.patch?
-      'toggle_active'
+      'toggle'
     elsif request.put?
       'update'
     elsif request.delete?

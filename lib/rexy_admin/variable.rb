@@ -141,7 +141,7 @@ module RexyAdmin
       elsif request.post?
         'create'
       elsif request.patch?
-        'toggle_active'
+        'toggle'
       elsif request.put?
         'update'
       elsif request.delete?
