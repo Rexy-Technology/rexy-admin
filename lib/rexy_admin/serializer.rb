@@ -50,7 +50,7 @@ module RexyAdmin
         search_fields = if schema[:search_fields].nil?
                           fields
                         else
-                          schema[:search_fields]&.presence&.uniq&.map(&:to_sym)&.reject { |key| key == :id }
+                          schema[:search_fields]&.uniq&.map(&:to_sym)&.reject { |key| key == :id }
                         end
 
         {

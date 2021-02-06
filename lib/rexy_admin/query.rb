@@ -18,7 +18,6 @@ module RexyAdmin
         paginate: true
     )
         fields = (fields&.uniq&.presence || column_names.map(&:to_sym) - exclude_fields) - EXCLUDE_KEYS_STRING
-        search_fields = search_fields&.uniq&.presence || fields           
 
         schema = {
           model: self,
