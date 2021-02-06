@@ -1,17 +1,19 @@
-[Introduction](#introduction)<br>
-[Dependencies](#dependencies)<br>
-[Installation](#installation)<br>
-[Configuration](#configuration)<br>
-[Example](#example)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[1. Create models](#1-create-models)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[2. Create a user and use jwt encode to get token](#2-create-a-user-and-use-jwt-encode-to-get-token)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[3. Add RexyAdmin to Post model](#3-add-rexyadmin-to-post-model)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[4. Make a request to create post](#4-make-a-request-to-create-post)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[5. Set specify action](#5-set-specify-action)<br>
-[Features](#features)<br>
-[Contributing](#contributing)<br>
-[License](#license)<br>
-[Usage example](#usage-example)<br>
+# RexyAdmin
+### Table of Content
+- [Introduction](#introduction)<br>
+- [Dependencies](#dependencies)<br>
+- [Installation](#installation)<br>
+- [Configuration](#configuration)<br>
+- [Example](#example)<br>
+  - [Create models](#1-create-models)<br>
+  - [Create a user and use jwt encode to get token](#2-create-a-user-and-use-jwt-encode-to-get-token)<br>
+  - [Add RexyAdmin to Post model](#3-add-rexyadmin-to-post-model)<br>
+  - [Make a request to create post](#4-make-a-request-to-create-post)<br>
+  - [Set specify action](#5-set-specify-action)<br>
+- [Features](#features)<br>
+- [Contributing](#contributing)<br>
+- [License](#license)<br>
+- [Usage example](#usage-example)<br>
 
 ## Introduction
 * As a developer, besides creating new things and "changing the world", we also have tasks that are boring, repetitive, but need to be done:
