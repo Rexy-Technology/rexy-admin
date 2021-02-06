@@ -47,7 +47,7 @@ module RexyAdmin
         raise 'Please provide a model' unless schema[:model].present?
 
         fields = schema[:fields]&.presence&.uniq&.map(&:to_sym) || schema[:model].column_names
-        search_fields = if schema.nil?
+        search_fields = if schema[:search_fields].nil?
                           fields
                         else
                           schema[:search_fields]&.presence&.uniq&.map(&:to_sym)&.reject { |key| key == :id }
