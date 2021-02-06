@@ -17,28 +17,27 @@ module RexyAdmin
         after_action: nil,
         paginate: true
     )
-        fields = (fields&.uniq&.presence || column_names.map(&:to_sym) - exclude_fields) - EXCLUDE_KEYS_STRING
-        search_fields = search_fields&.uniq&.presence || fields           
+      fields = (fields&.uniq&.presence || column_names.map(&:to_sym) - exclude_fields) - EXCLUDE_KEYS_STRING
 
-        schema = {
-          model: self,
-          fields: fields,
-          search_fields: search_fields,
-          associations: associations,
-          has_many: false,
-          in_has_many_branch: false
-        }      
-        raise "This query route already exist, please choose another route." if route_exists?(route)
-        
-        @queries << {
-          route: route,
-          context: context,
-          params_checker: params_checker,
-          schema: schema,
-          after_query: after_query,
-          after_action: after_action,
-          paginate: paginate
-        }
+      schema = {
+        model: self,
+        fields: fields,
+        search_fields: search_fields,
+        associations: associations,
+        has_many: false,
+        in_has_many_branch: false
+      }
+      raise "This query route already exist, please choose another route." if route_exists?(route)
+
+      @queries << {
+        route: route,
+        context: context,
+        params_checker: params_checker,
+        schema: schema,
+        after_query: after_query,
+        after_action: after_action,
+        paginate: paginate
+      }
     end
 
     def rexy_admin_query(params = {})
