@@ -142,7 +142,7 @@ class RexyAdminController < ActionController::Base
   def get_errors(result)
     unless result[:result].is_a?(String)
       return {
-        errors: result[:result][:errors][0]
+        errors: result[:result][:errors]
       }
     end
 

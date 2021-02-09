@@ -107,7 +107,7 @@ module RexyAdmin
 
         cmd = params_checker.call(params: query_params, context: context.merge(current_admin: query_params[:current_admin]))
         if cmd.failure?
-          errors.add(:errors, cmd.errors[:errors][0])
+          errors.add(:errors, cmd.errors[:errors])
           return nil
         end
 
