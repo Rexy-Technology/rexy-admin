@@ -20,9 +20,9 @@ module RexyAdmin
           # Example: "materials.id", "materials.supplier_id"
           unless v.split('.').last == 'id' || v.last(3) == '_id'
             if Rails.configuration.database_configuration[Rails.env]['adapter'] == "postgresql"
-              "COALESCE(lower(#{v}), '') LIKE :keyword"
-            else
               "LOWER(unaccent(#{v})) ILIKE unaccent(:keyword)"
+            else
+              "COALESCE(lower(#{v}), '') LIKE :keyword"
             end
           end
         end.compact.join(' OR ')      
