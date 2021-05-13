@@ -12,7 +12,7 @@ class AuthenticateAdmin
       { token: JsonWebToken.encode(admin_id: admin.id.to_s) }
     else
       errors.add(:errors,  {
-        "message": "Incorrect email or password provided!",
+        'message': 'Incorrect email or password provided!',
         "details": {
           error_code: 0
         }

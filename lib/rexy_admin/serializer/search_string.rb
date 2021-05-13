@@ -19,7 +19,11 @@ module RexyAdmin
         all_search_fields_array.map do |v|
           # Example: "materials.id", "materials.supplier_id"
           unless v.split('.').last == 'id' || v.last(3) == '_id'
-            "COALESCE(lower(#{v}), '') LIKE :keyword"
+            if Rails.configuration.database_configuration[Rails.env]['adapter'] == "postgresql"
+              "COALESCE(lower(#{v}), '') LIKE :keyword"
+            else
+              "LOWER(unaccent(#{v})) ILIKE unaccent(:keyword)"
+            end
           end
         end.compact.join(' OR ')      
       end
