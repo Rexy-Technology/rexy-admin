@@ -31,6 +31,7 @@ module RexyAdmin
             # example: like supplier_keyword
             keyword_param_string = model.table_name.singularize + '_keyword'
   
+            # TODO: add search in postgres too
             "COALESCE(lower(#{search_field_string}), '') LIKE '%#{params[keyword_param_string]}%'"
           end&.compact.join(' OR ')
         end
@@ -75,6 +76,7 @@ module RexyAdmin
           value = params[keyword_param_string]
           next if search_field == :id && value.nil?
 
+          # TODO: add search in postgres too
           "COALESCE(lower(#{search_field_string}), '') LIKE '%#{value}%'"
         end&.compact.join(' OR ')
         "(#{search_fields_string})"

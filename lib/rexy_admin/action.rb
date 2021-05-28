@@ -91,10 +91,14 @@ module RexyAdmin
       action, params_checker, context, custom_command, default_action = action_variables(action)
 
       if params_checker.present?
-        params_checker_cmd = params_checker.call(params: params, context: context.merge(current_admin: params["current_admin"]))
+        params_checker_cmd = params_checker.call(params: params, context: context.merge(current_admin: params['current_admin']))
         return { status: 'FAIL', result: params_checker_cmd.errors } if params_checker_cmd.failure?
 
-        params = params_checker_cmd.result
+        params =
+          params_checker_cmd.result
+                            .merge(
+                              current_admin: params['current_admin']
+                             )
       end
 
       return execute_custom_command(custom_command, params) if custom_command.present?

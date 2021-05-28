@@ -1,7 +1,7 @@
 require 'rexy_admin/filter_params'
 module RexyAdmin
   module Action
-    # Update 
+    # Update
     def rexy_admin_update(id, params = {})
       action = :update
       raise "Action #{action} is not set in model #{model_name} yet." unless action.in? @actions
