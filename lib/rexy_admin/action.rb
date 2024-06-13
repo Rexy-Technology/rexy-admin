@@ -35,9 +35,9 @@ module RexyAdmin
       # p "========>action : ", action
       # p "========>action.in?(%i[create update delete toggle]) : ", action.in?(%i[create update delete toggle])
       if action.in?(%i[create update delete toggle])
-        set_mutation_actions(kwargs)
+        set_mutation_actions(**kwargs)
       else
-        set_query_actions(kwargs)
+        set_query_actions(**kwargs)
       end
     end
 
